@@ -1,0 +1,6 @@
+{
+    "require": {
+        "laravel/framework": "^13.30",
+        "yajra/laravel-oci8": "13"
+    }
+}
