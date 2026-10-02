@@ -2,15 +2,11 @@
 ALTER SESSION SET CURRENT_SCHEMA = amp_test;
 EXEC DBMS_RANDOM.SEED(42);
 
--- 8 agences
+-- 4 agences
 INSERT INTO agence VALUES (1, 'AG001', 'Agence Douala Akwa',     'Douala',    DATE '2010-03-15');
 INSERT INTO agence VALUES (2, 'AG002', 'Agence Yaounde Centre',  'Yaounde',   DATE '2011-06-01');
 INSERT INTO agence VALUES (3, 'AG003', 'Agence Bafoussam',       'Bafoussam', DATE '2013-09-20');
 INSERT INTO agence VALUES (4, 'AG004', 'Agence Garoua',          'Garoua',    DATE '2014-02-10');
-INSERT INTO agence VALUES (5, 'AG005', 'Agence Bamenda',         'Bamenda',   DATE '2015-11-05');
-INSERT INTO agence VALUES (6, 'AG006', 'Agence Limbe',           'Limbe',     DATE '2016-04-18');
-INSERT INTO agence VALUES (7, 'AG007', 'Agence Kribi',           'Kribi',     DATE '2018-07-30');
-INSERT INTO agence VALUES (8, 'AG008', 'Agence Maroua',          'Maroua',    DATE '2019-01-22');
 
 -- 600 clients : ~14 % de PME, 2 % de grandes entreprises, le reste en particuliers
 INSERT INTO client (client_id, num_client, nom, prenom, segment_client, agence_id, date_creation, statut)
@@ -26,7 +22,7 @@ SELECT lv,
        CASE WHEN MOD(lv, 50) = 0 THEN 'GRANDE_ENTREPRISE'
             WHEN MOD(lv, 7)  = 0 THEN 'PME'
             ELSE 'PARTICULIER' END,
-       1 + MOD(lv, 8),
+       1 + MOD(lv, 4),
        DATE '2018-01-01' + MOD(lv * 37, 2000),
        CASE WHEN MOD(lv, 25) = 0 THEN 'INACTIF'
             WHEN MOD(lv, 40) = 0 THEN 'SUSPENDU'
