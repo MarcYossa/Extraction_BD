@@ -10,21 +10,12 @@
 </head>
 <body>
 
-{{--
-    Gabarit principal : sidebar (315 px) + topbar + contenu.
-    L'utilisateur factice est injecté pour ce lot ; au lot 2,
-    il sera remplacé par Auth::user().
---}}
 @php
-    $fakeUser = $fakeUser ?? [
-        'prenom'     => 'Amine',
-        'nom'        => 'M.',
-        'role'       => 'admin',         // 'admin' | 'user'
-        'initiales'  => 'AM',
-        'role_label' => 'Administrateur',
-    ];
-    $role = $fakeUser['role'] ?? 'user';
-    $isAdmin = $role === 'admin';
+    $authUser = Auth::user();
+    $userDisplayName = $authUser ? $authUser->nom_affiche : ($fakeUser['prenom'] ?? 'Amine') . ' ' . ($fakeUser['nom'] ?? 'M.');
+    $userRoleLabel   = $authUser ? $authUser->role_label : ($fakeUser['role_label'] ?? 'Administrateur');
+    $userInitials    = $authUser ? $authUser->initiales : ($fakeUser['initiales'] ?? 'AM');
+    $isAdmin         = $authUser ? $authUser->isAdmin() : (($fakeUser['role'] ?? 'admin') === 'admin');
 @endphp
 
 <div class="app-shell" x-data>
@@ -64,66 +55,52 @@
 
                 <a href="{{ route('admin.extractions.create') }}"
                    class="sidebar__nav-item {{ request()->routeIs('admin.extractions.create') ? 'is-active' : '' }}"
-                   id="nav-nouvelle-extraction">
+                   id="nav-creer">
                     <x-icon name="plus" size="18" />
                     Nouvelle extraction
                 </a>
-
             @else
                 {{-- Menu utilisateur métier --}}
-                <span class="sidebar__section-label">Espace métier</span>
+                <span class="sidebar__section-label">Espace Métier</span>
 
                 <a href="{{ route('dashboard') }}"
                    class="sidebar__nav-item {{ request()->routeIs('dashboard') ? 'is-active' : '' }}"
-                   id="nav-accueil-metier">
+                   id="nav-metier-accueil">
                     <x-icon name="grid" size="18" />
                     Accueil
                 </a>
 
                 <a href="{{ route('catalogue') }}"
-                   class="sidebar__nav-item {{ request()->routeIs('catalogue*') ? 'is-active' : '' }}"
-                   id="nav-catalogue">
+                   class="sidebar__nav-item {{ request()->routeIs('catalogue') ? 'is-active' : '' }}"
+                   id="nav-metier-catalogue">
                     <x-icon name="list" size="18" />
-                    Catalogue
+                    Catalogue d'extractions
                 </a>
             @endif
 
         </nav>
 
-        <hr class="sidebar__divider" />
-
-        {{-- Pied de sidebar --}}
+        {{-- Bas de la sidebar --}}
         <div class="sidebar__footer">
-            {{-- Paramètres : masqué (D16 — aucune maquette) --}}
-            {{-- <a href="#" class="sidebar__nav-item" id="nav-parametres">
-                <x-icon name="settings" size="18" />
-                Paramètres
-            </a> --}}
-
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="sidebar__nav-item" id="nav-deconnexion">
-                    <x-icon name="logout" size="18" />
-                    Déconnexion
-                </button>
-            </form>
+            <div class="sidebar__version">Extraction BD v1.0</div>
+            <div class="sidebar__env">Environnement de test</div>
         </div>
 
     </aside>
 
-    {{-- ── Zone principale ─────────────────────────────────────────────── --}}
+    {{-- ── Zone principale ────────────────────────────────────────────────── --}}
     <div class="main-wrapper">
 
-        {{-- Topbar --}}
-        <header class="topbar" role="banner">
-            <div class="topbar__header">
-                <span class="topbar__overtitle">
-                    {{ $isAdmin ? 'Administration' : 'Espace métier' }}
+        {{-- Barre du haut (Topbar) --}}
+        <header class="topbar">
+            {{-- Fil d'Ariane ou titre rapide --}}
+            <div class="topbar__left">
+                <span class="topbar__tag">
+                    {{ $isAdmin ? 'Administration technique' : 'Espace Métier' }}
                 </span>
-                <span class="topbar__title">@yield('page-title', '')</span>
             </div>
 
-            {{-- Profil --}}
+            {{-- Profil utilisateur avec menu déroulant et déconnexion --}}
             <div
                 class="topbar__user"
                 x-data="{ open: false }"
@@ -135,15 +112,34 @@
                 aria-haspopup="true"
                 :aria-expanded="open"
                 id="topbar-user-menu"
+                style="position:relative; cursor:pointer;"
             >
                 <div class="topbar__user-info">
                     <span class="topbar__user-name">
-                        {{ $fakeUser['prenom'] }} {{ $fakeUser['nom'] }} — {{ $fakeUser['role_label'] }}
+                        {{ $userDisplayName }} — {{ $userRoleLabel }}
                     </span>
                     <span class="topbar__user-org">BCPME</span>
                 </div>
-                <x-avatar :initials="$fakeUser['initiales']" size="md" />
+                <x-avatar :initials="$userInitials" size="md" />
                 <x-icon name="chevron-down" size="16" class="topbar__chevron" />
+
+                {{-- Menu déroulant Déconnexion --}}
+                <div
+                    x-show="open"
+                    x-transition
+                    style="position:absolute; top:calc(100% + 8px); right:0; background:var(--color-bg-card); border:1px solid var(--color-border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-md); padding:var(--space-2); min-width:180px; z-index:50;"
+                >
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            style="display:flex; align-items:center; gap:var(--space-2); width:100%; padding:var(--space-2) var(--space-3); border:none; background:none; color:var(--color-text-main); cursor:pointer; text-align:left; font-size:var(--font-sm); border-radius:var(--radius-sm);"
+                        >
+                            <x-icon name="logout" size="16" />
+                            Déconnexion
+                        </button>
+                    </form>
+                </div>
             </div>
         </header>
 
