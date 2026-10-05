@@ -41,7 +41,8 @@
     {{-- Colonne droite formulaire --}}
     <div class="guest-panel-right">
         <div class="guest-form-wrapper">
-            {{ $slot }}
+            {{ $slot ?? '' }}
+            @yield('content')
         </div>
     </div>
 
