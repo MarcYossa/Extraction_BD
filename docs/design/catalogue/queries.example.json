@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "modifie_le": "2026-09-30T16:40:00+01:00",
+  "extractions": [
+    {
+      "code": "CPT_001",
+      "titre": "Comptes ouverts par agence et période",
+      "description": "Comptes ouverts sur une période, par agence, avec leur type et leur statut.",
+      "statut": "active",
+      "version": 3,
+      "requete_sql": [
+        "SELECT a.nom_agence AS agence, c.num_compte AS num_compte, c.type_compte AS type_compte,",
+        "       c.devise AS devise, c.date_ouverture AS date_ouverture, c.statut AS statut",
+        "FROM amp_test.compte c",
+        "JOIN amp_test.agence a ON a.agence_id = c.agence_id",
+        "WHERE (:agence IS NULL OR c.agence_id = :agence)",
+        "  AND c.date_ouverture BETWEEN :date_debut AND :date_fin",
+        "  AND (:inclure_clotures = 1 OR c.statut <> 'CLOTURE')",
+        "ORDER BY c.date_ouverture, c.num_compte"
+      ],
+      "parametres": [
+        {
+          "nom": "agence",
+          "libelle": "Agence",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Toutes les agences —",
+          "source": {
+            "type": "requete",
+            "requete_sql": [
+              "SELECT agence_id AS valeur, nom_agence AS libelle",
+              "FROM amp_test.agence",
+              "ORDER BY nom_agence"
+            ]
+          }
+        },
+        {
+          "nom": "date_debut",
+          "libelle": "Date de début",
+          "type": "date",
+          "obligatoire": true
+        },
+        {
+          "nom": "date_fin",
+          "libelle": "Date de fin",
+          "type": "date",
+          "obligatoire": true,
+          "defaut": "aujourd_hui",
+          "apres_ou_egal": "date_debut"
+        },
+        {
+          "nom": "inclure_clotures",
+          "libelle": "Inclure les comptes clôturés",
+          "type": "booleen",
+          "obligatoire": false,
+          "defaut": false
+        }
+      ],
+      "colonnes": [
+        {
+          "cle": "agence",
+          "libelle": "Agence",
+          "format": "texte"
+        },
+        {
+          "cle": "num_compte",
+          "libelle": "N° compte",
+          "format": "code"
+        },
+        {
+          "cle": "type_compte",
+          "libelle": "Type",
+          "format": "texte"
+        },
+        {
+          "cle": "devise",
+          "libelle": "Devise",
+          "format": "texte"
+        },
+        {
+          "cle": "date_ouverture",
+          "libelle": "Date d'ouverture",
+          "format": "date"
+        },
+        {
+          "cle": "statut",
+          "libelle": "Statut",
+          "format": "statut"
+        }
+      ],
+      "cree_le": "2026-09-10T10:05:00+01:00",
+      "cree_par": "amine.m",
+      "modifie_le": "2026-09-24T09:15:00+01:00",
+      "modifie_par": "amine.m",
+      "publie_le": "2026-09-24T09:40:00+01:00",
+      "publie_par": "amine.m",
+      "dernier_test": {
+        "version": 3,
+        "date": "2026-09-24T09:30:00+01:00",
+        "par": "amine.m",
+        "resultat": "reussi",
+        "nb_lignes": 170,
+        "duree_ms": 118
+      }
+    },
+    {
+      "code": "CLI_001",
+      "titre": "Recherche de clients",
+      "description": "Clients par agence, statut et début du nom ou de la raison sociale.",
+      "statut": "active",
+      "version": 2,
+      "requete_sql": [
+        "SELECT cl.num_client AS num_client,",
+        "       TRIM(cl.prenom || ' ' || cl.nom) AS nom_raison_sociale,",
+        "       cl.segment_client AS segment_client, a.nom_agence AS agence, cl.statut AS statut",
+        "FROM amp_test.client cl",
+        "JOIN amp_test.agence a ON a.agence_id = cl.agence_id",
+        "WHERE (:agence IS NULL OR cl.agence_id = :agence)",
+        "  AND (:statut IS NULL OR cl.statut = :statut)",
+        "  AND (:nom IS NULL OR UPPER(cl.nom) LIKE UPPER(:nom) || '%')",
+        "ORDER BY cl.nom, cl.prenom, cl.num_client"
+      ],
+      "parametres": [
+        {
+          "nom": "agence",
+          "libelle": "Agence",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Toutes les agences —",
+          "source": {
+            "type": "requete",
+            "requete_sql": [
+              "SELECT agence_id AS valeur, nom_agence AS libelle",
+              "FROM amp_test.agence",
+              "ORDER BY nom_agence"
+            ]
+          }
+        },
+        {
+          "nom": "statut",
+          "libelle": "Statut du client",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Tous les statuts —",
+          "source": {
+            "type": "fixe",
+            "options": [
+              {
+                "valeur": "ACTIF",
+                "libelle": "Actif"
+              },
+              {
+                "valeur": "INACTIF",
+                "libelle": "Inactif"
+              },
+              {
+                "valeur": "SUSPENDU",
+                "libelle": "Suspendu"
+              }
+            ]
+          }
+        },
+        {
+          "nom": "nom",
+          "libelle": "Nom ou raison sociale (début)",
+          "type": "texte",
+          "obligatoire": false,
+          "longueur_max": 100
+        }
+      ],
+      "colonnes": [
+        {
+          "cle": "num_client",
+          "libelle": "N° client",
+          "format": "code"
+        },
+        {
+          "cle": "nom_raison_sociale",
+          "libelle": "Nom / raison sociale",
+          "format": "texte"
+        },
+        {
+          "cle": "segment_client",
+          "libelle": "Segment",
+          "format": "texte"
+        },
+        {
+          "cle": "agence",
+          "libelle": "Agence",
+          "format": "texte"
+        },
+        {
+          "cle": "statut",
+          "libelle": "Statut",
+          "format": "statut"
+        }
+      ],
+      "cree_le": "2026-09-12T14:20:00+01:00",
+      "cree_par": "amine.m",
+      "modifie_le": "2026-09-22T11:00:00+01:00",
+      "modifie_par": "amine.m",
+      "publie_le": "2026-09-22T11:30:00+01:00",
+      "publie_par": "amine.m",
+      "dernier_test": {
+        "version": 2,
+        "date": "2026-09-22T11:20:00+01:00",
+        "par": "amine.m",
+        "resultat": "reussi",
+        "nb_lignes": 600,
+        "duree_ms": 74
+      }
+    },
+    {
+      "code": "OPE_001",
+      "titre": "Opérations par agence, période et montant",
+      "description": "Opérations d'une période au-dessus d'un montant minimum, par agence et type de mouvement.",
+      "statut": "active",
+      "version": 1,
+      "requete_sql": [
+        "SELECT a.nom_agence AS agence, c.num_compte AS num_compte, o.date_operation AS date_operation,",
+        "       o.type_operation AS type_operation, o.montant AS montant, o.libelle AS libelle, o.canal AS canal",
+        "FROM amp_test.operation o",
+        "JOIN amp_test.compte c ON c.compte_id = o.compte_id",
+        "JOIN amp_test.agence a ON a.agence_id = c.agence_id",
+        "WHERE (:agence IS NULL OR c.agence_id = :agence)",
+        "  AND o.date_operation BETWEEN :date_debut AND :date_fin",
+        "  AND o.montant >= :seuil_montant",
+        "  AND (:type_operation IS NULL OR o.type_operation = :type_operation)",
+        "ORDER BY o.date_operation, o.operation_id"
+      ],
+      "parametres": [
+        {
+          "nom": "agence",
+          "libelle": "Agence",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Toutes les agences —",
+          "source": {
+            "type": "requete",
+            "requete_sql": [
+              "SELECT agence_id AS valeur, nom_agence AS libelle",
+              "FROM amp_test.agence",
+              "ORDER BY nom_agence"
+            ]
+          }
+        },
+        {
+          "nom": "date_debut",
+          "libelle": "Date de début",
+          "type": "date",
+          "obligatoire": true
+        },
+        {
+          "nom": "date_fin",
+          "libelle": "Date de fin",
+          "type": "date",
+          "obligatoire": true,
+          "defaut": "aujourd_hui",
+          "apres_ou_egal": "date_debut"
+        },
+        {
+          "nom": "seuil_montant",
+          "libelle": "Montant minimum (XAF)",
+          "type": "nombre",
+          "obligatoire": true,
+          "defaut": 0,
+          "min": 0
+        },
+        {
+          "nom": "type_operation",
+          "libelle": "Type d'opération",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Tous les types —",
+          "source": {
+            "type": "fixe",
+            "options": [
+              {
+                "valeur": "DEBIT",
+                "libelle": "Débit"
+              },
+              {
+                "valeur": "CREDIT",
+                "libelle": "Crédit"
+              }
+            ]
+          }
+        }
+      ],
+      "colonnes": [
+        {
+          "cle": "agence",
+          "libelle": "Agence",
+          "format": "texte"
+        },
+        {
+          "cle": "num_compte",
+          "libelle": "N° compte",
+          "format": "code"
+        },
+        {
+          "cle": "date_operation",
+          "libelle": "Date",
+          "format": "date"
+        },
+        {
+          "cle": "type_operation",
+          "libelle": "Sens",
+          "format": "texte"
+        },
+        {
+          "cle": "montant",
+          "libelle": "Montant (XAF)",
+          "format": "montant"
+        },
+        {
+          "cle": "libelle",
+          "libelle": "Libellé",
+          "format": "texte"
+        },
+        {
+          "cle": "canal",
+          "libelle": "Canal",
+          "format": "texte"
+        }
+      ],
+      "cree_le": "2026-09-18T15:10:00+01:00",
+      "cree_par": "amine.m",
+      "modifie_le": "2026-09-18T15:10:00+01:00",
+      "modifie_par": "amine.m",
+      "publie_le": "2026-09-18T15:45:00+01:00",
+      "publie_par": "amine.m",
+      "dernier_test": {
+        "version": 1,
+        "date": "2026-09-18T15:30:00+01:00",
+        "par": "amine.m",
+        "resultat": "reussi",
+        "nb_lignes": 100,
+        "duree_ms": 212
+      }
+    },
+    {
+      "code": "CRT_001",
+      "titre": "Crédits et engagements",
+      "description": "Crédits et engagements octroyés sur une période, par agence, statut et type.",
+      "statut": "brouillon",
+      "version": 1,
+      "requete_sql": [
+        "SELECT a.nom_agence AS agence, cr.num_dossier AS num_dossier, cl.num_client AS num_client,",
+        "       cr.type_engagement AS type_engagement, cr.montant_accorde AS montant_accorde, cr.encours AS encours,",
+        "       cr.date_octroi AS date_octroi, cr.date_echeance AS date_echeance, cr.statut AS statut",
+        "FROM amp_test.credit cr",
+        "JOIN amp_test.agence a ON a.agence_id = cr.agence_id",
+        "JOIN amp_test.client cl ON cl.client_id = cr.client_id",
+        "WHERE (:agence IS NULL OR cr.agence_id = :agence)",
+        "  AND cr.date_octroi BETWEEN :date_debut AND :date_fin",
+        "  AND (:statut IS NULL OR cr.statut = :statut)",
+        "  AND (:type_engagement IS NULL OR cr.type_engagement = :type_engagement)",
+        "ORDER BY cr.date_octroi, cr.num_dossier"
+      ],
+      "parametres": [
+        {
+          "nom": "agence",
+          "libelle": "Agence",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Toutes les agences —",
+          "source": {
+            "type": "requete",
+            "requete_sql": [
+              "SELECT agence_id AS valeur, nom_agence AS libelle",
+              "FROM amp_test.agence",
+              "ORDER BY nom_agence"
+            ]
+          }
+        },
+        {
+          "nom": "date_debut",
+          "libelle": "Date de début",
+          "type": "date",
+          "obligatoire": true
+        },
+        {
+          "nom": "date_fin",
+          "libelle": "Date de fin",
+          "type": "date",
+          "obligatoire": true,
+          "defaut": "aujourd_hui",
+          "apres_ou_egal": "date_debut"
+        },
+        {
+          "nom": "statut",
+          "libelle": "Statut du crédit",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Tous les statuts —",
+          "source": {
+            "type": "fixe",
+            "options": [
+              {
+                "valeur": "EN_COURS",
+                "libelle": "En cours"
+              },
+              {
+                "valeur": "SOLDE",
+                "libelle": "Soldé"
+              },
+              {
+                "valeur": "IMPAYE",
+                "libelle": "Impayé"
+              },
+              {
+                "valeur": "CONTENTIEUX",
+                "libelle": "Contentieux"
+              }
+            ]
+          }
+        },
+        {
+          "nom": "type_engagement",
+          "libelle": "Type d'engagement",
+          "type": "liste",
+          "obligatoire": true,
+          "option_toutes": "— Tous les types —",
+          "source": {
+            "type": "fixe",
+            "options": [
+              {
+                "valeur": "CREDIT_CONSO",
+                "libelle": "Crédit consommation"
+              },
+              {
+                "valeur": "CREDIT_IMMO",
+                "libelle": "Crédit immobilier"
+              },
+              {
+                "valeur": "CREDIT_TRESORERIE",
+                "libelle": "Crédit de trésorerie"
+              },
+              {
+                "valeur": "CREDIT_EQUIPEMENT",
+                "libelle": "Crédit d'équipement"
+              },
+              {
+                "valeur": "CAUTION",
+                "libelle": "Caution"
+              }
+            ]
+          }
+        }
+      ],
+      "colonnes": [
+        {
+          "cle": "agence",
+          "libelle": "Agence",
+          "format": "texte"
+        },
+        {
+          "cle": "num_dossier",
+          "libelle": "N° dossier",
+          "format": "code"
+        },
+        {
+          "cle": "num_client",
+          "libelle": "N° client",
+          "format": "code"
+        },
+        {
+          "cle": "type_engagement",
+          "libelle": "Type",
+          "format": "texte"
+        },
+        {
+          "cle": "montant_accorde",
+          "libelle": "Montant accordé (XAF)",
+          "format": "montant"
+        },
+        {
+          "cle": "encours",
+          "libelle": "Encours (XAF)",
+          "format": "montant"
+        },
+        {
+          "cle": "date_octroi",
+          "libelle": "Date d'octroi",
+          "format": "date"
+        },
+        {
+          "cle": "date_echeance",
+          "libelle": "Échéance",
+          "format": "date"
+        },
+        {
+          "cle": "statut",
+          "libelle": "Statut",
+          "format": "statut"
+        }
+      ],
+      "cree_le": "2026-09-28T09:00:00+01:00",
+      "cree_par": "amine.m",
+      "modifie_le": "2026-09-28T09:00:00+01:00",
+      "modifie_par": "amine.m",
+      "publie_le": null,
+      "publie_par": null,
+      "dernier_test": null
+    }
+  ]
+}
