@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "queries.schema.json",
+  "title": "Catalogue des extractions (queries.json)",
+  "type": "object",
+  "required": ["schema_version", "extractions"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "modifie_le": { "$ref": "#/$defs/horodatage" },
+    "extractions": { "type": "array", "items": { "$ref": "#/$defs/extraction" } }
+  },
+  "$defs": {
+    "horodatage": { "type": "string", "format": "date-time" },
+    "identifiant": { "type": "string", "pattern": "^[a-z][a-z0-9_.]{1,49}$" },
+    "lignes_sql": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "extraction": {
+      "type": "object",
+      "required": ["code", "titre", "description", "statut", "version", "requete_sql", "parametres",
+                   "cree_le", "cree_par", "modifie_le", "modifie_par"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z]{3}_[0-9]{3}$" },
+        "titre": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "description": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "statut": { "enum": ["brouillon", "active", "inactive"] },
+        "version": { "type": "integer", "minimum": 1 },
+        "requete_sql": { "$ref": "#/$defs/lignes_sql" },
+        "parametres": { "type": "array", "items": { "$ref": "#/$defs/parametre" } },
+        "colonnes": { "type": "array", "items": { "$ref": "#/$defs/colonne" } },
+        "cree_le": { "$ref": "#/$defs/horodatage" },
+        "cree_par": { "$ref": "#/$defs/identifiant" },
+        "modifie_le": { "$ref": "#/$defs/horodatage" },
+        "modifie_par": { "$ref": "#/$defs/identifiant" },
+        "publie_le": { "oneOf": [{ "$ref": "#/$defs/horodatage" }, { "type": "null" }] },
+        "publie_par": { "oneOf": [{ "$ref": "#/$defs/identifiant" }, { "type": "null" }] },
+        "dernier_test": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["version", "date", "par", "resultat"],
+              "additionalProperties": false,
+              "properties": {
+                "version": { "type": "integer", "minimum": 1 },
+                "date": { "$ref": "#/$defs/horodatage" },
+                "par": { "$ref": "#/$defs/identifiant" },
+                "resultat": { "enum": ["reussi", "echec"] },
+                "nb_lignes": { "type": "integer", "minimum": 0 },
+                "duree_ms": { "type": "integer", "minimum": 0 }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "parametre": {
+      "type": "object",
+      "required": ["nom", "libelle", "type", "obligatoire"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,29}$" },
+        "libelle": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "type": { "enum": ["texte", "nombre", "date", "liste", "booleen"] },
+        "obligatoire": { "type": "boolean" },
+        "defaut": { "type": ["string", "number", "boolean", "null"] },
+        "longueur_max": { "type": "integer", "minimum": 1, "maximum": 255 },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "apres_ou_egal": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,29}$" },
+        "option_toutes": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "#/$defs/source_liste" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "liste" } } }, "then": { "required": ["source"] } },
+        { "if": { "properties": { "type": { "not": { "const": "liste" } } } },
+          "then": { "not": { "anyOf": [{ "required": ["source"] }, { "required": ["option_toutes"] }] } } },
+        { "if": { "properties": { "type": { "not": { "const": "texte" } } } },
+          "then": { "not": { "required": ["longueur_max"] } } },
+        { "if": { "properties": { "type": { "not": { "const": "nombre" } } } },
+          "then": { "not": { "anyOf": [{ "required": ["min"] }, { "required": ["max"] }] } } },
+        { "if": { "properties": { "type": { "not": { "const": "date" } } } },
+          "then": { "not": { "required": ["apres_ou_egal"] } } }
+      ]
+    },
+    "source_liste": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "options"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "fixe" },
+            "options": {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object", "required": ["valeur", "libelle"], "additionalProperties": false,
+                "properties": { "valeur": { "type": "string", "minLength": 1 }, "libelle": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "requete_sql"],
+          "additionalProperties": false,
+          "properties": { "type": { "const": "requete" }, "requete_sql": { "$ref": "#/$defs/lignes_sql" } }
+        }
+      ]
+    },
+    "colonne": {
+      "type": "object",
+      "required": ["cle", "libelle", "format"],
+      "additionalProperties": false,
+      "properties": {
+        "cle": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,29}$" },
+        "libelle": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "format": { "enum": ["texte", "code", "nombre", "montant", "date", "statut"] }
+      }
+    }
+  }
+}
