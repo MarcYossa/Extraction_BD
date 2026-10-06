@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SocleTestController;
 use App\Http\Controllers\Dev\StyleguideController;
+use App\Http\Controllers\AdminHomeController;
+use App\Http\Controllers\Admin\ExtractionAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,10 +34,11 @@ Route::middleware('auth')->group(function () {
 
     // Administration technique (contrôle d'accès rôle admin)
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', fn () => view('admin.dashboard'))->name('dashboard');
-        Route::get('/extractions', fn () => abort(404))->name('extractions.index');
-        Route::get('/extractions/create', fn () => abort(404))->name('extractions.create');
-        Route::get('/extractions/{code}/edit', fn () => abort(404))->name('extractions.edit');
+        Route::get('/', AdminHomeController::class)->name('dashboard');
+        Route::get('/extractions', [ExtractionAdminController::class, 'index'])->name('extractions.index');
+        Route::patch('/extractions/{code}/statut', [ExtractionAdminController::class, 'toggleStatut'])->name('extractions.toggle-statut');
+        Route::get('/extractions/create', fn () => view('admin.extractions.soon', ['titre' => 'Nouvelle extraction']))->name('extractions.create');
+        Route::get('/extractions/{code}/edit', fn () => view('admin.extractions.soon', ['titre' => "Modifier l'extraction"]))->name('extractions.edit');
     });
 
     // Espace Utilisateur Métier
