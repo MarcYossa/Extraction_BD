@@ -32,10 +32,13 @@ class CatalogueValidator
         if (file_exists($this->schemaPath)) {
             try {
                 $validator = new Validator();
-                $schemaJson = json_decode(file_get_contents($this->schemaPath));
-                $dataJson = json_decode(json_encode($data));
+                $schemaData = json_decode(file_get_contents($this->schemaPath));
+                if (is_object($schemaData) && isset($schemaData->{'$id'})) {
+                    unset($schemaData->{'$id'});
+                }
 
-                $result = $validator->validate($dataJson, $schemaJson);
+                $dataJson = json_decode(json_encode($data));
+                $result = $validator->validate($dataJson, $schemaData);
 
                 if (! $result->isValid()) {
                     $error = $result->error();

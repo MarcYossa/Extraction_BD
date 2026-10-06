@@ -18,6 +18,11 @@ class SqlGuard
         'ROLLBACK', 'LOCK', 'RENAME', 'COMMENT',
     ];
 
+    public function check(string $sql): void
+    {
+        $this->assertReadOnly($sql);
+    }
+
     public function assertReadOnly(string $sql): void
     {
         // Les commentaires sont refuses : ils servent souvent a masquer du SQL.
