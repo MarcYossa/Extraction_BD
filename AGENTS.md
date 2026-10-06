@@ -9,7 +9,7 @@ Plateforme interne des BCPME : un administrateur technique crée, teste et publi
 - Interface : Blade + Alpine.js. La technique CSS (Tailwind ou CSS natif) n'est **pas décidée** : ne rien installer sans accord.
 
 ## Interdits absolus
-- Ne **jamais** lancer `php artisan migrate`, `migrate:fresh`, `db:wipe`, ni créer de migration : l'application n'a pas de tables propres.
+- Ne **jamais** appliquer de migration sur Oracle : les migrations ne concernent que la base SQLite applicative (`app`). Ne jamais exécuter les scripts Oracle ni modifier le schéma Oracle.
 - Ne **jamais** exécuter les scripts de `database/oracle-test/` (le script `00_setup.sql` supprime des comptes) ni se connecter en `sysdba`.
 - Utiliser **uniquement** le compte `APP_RO` (lecture seule). Ne jamais lui ajouter de droits.
 - Ne **jamais** lire, afficher, copier ou modifier `.env` ; ne jamais committer de secret.
