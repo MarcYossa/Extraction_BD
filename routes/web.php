@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/extractions/{code}/statut', [ExtractionAdminController::class, 'toggleStatut'])->name('extractions.toggle-statut');
         Route::get('/extractions/{code}/test', [ExtractionTestController::class, 'testForm'])->name('extractions.test');
         Route::post('/extractions/{code}/test', [ExtractionTestController::class, 'executeTest'])->name('extractions.test.execute');
+        Route::get('/extractions/{code}/test/resultat/{jeton}', [ExtractionTestController::class, 'resultat'])->name('extractions.test.resultat');
     });
 
     // Espace Utilisateur Métier
