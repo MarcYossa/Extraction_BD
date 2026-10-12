@@ -1443,8 +1443,38 @@
     transform: translateX(20px);
 }
 
-.toggle-switch-field__label {
+/* Action rapide Activer / Désactiver dans la liste S03 */
+.form-toggle-statut {
+    display: inline-flex;
+    margin: 0;
+}
+
+.btn-action-statut {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
     font-size: var(--font-sm);
-    color: var(--color-text-heading);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
     font-weight: 500;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-action-statut--desactiver {
+    color: var(--color-error);
+}
+
+.btn-action-statut--desactiver:hover {
+    background-color: var(--color-error-bg);
+}
+
+.btn-action-statut--reactiver {
+    color: var(--color-success);
+}
+
+.btn-action-statut--reactiver:hover {
+    background-color: var(--color-success-bg);
 }
