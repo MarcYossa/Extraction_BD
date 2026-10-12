@@ -36,9 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminHomeController::class)->name('dashboard');
         Route::get('/extractions', [ExtractionAdminController::class, 'index'])->name('extractions.index');
+        Route::get('/extractions/create', [ExtractionAdminController::class, 'create'])->name('extractions.create');
+        Route::post('/extractions', [ExtractionAdminController::class, 'store'])->name('extractions.store');
+        Route::post('/extractions/verifier', [ExtractionAdminController::class, 'verifier'])->name('extractions.verifier');
+        Route::get('/extractions/{code}/edit', [ExtractionAdminController::class, 'edit'])->name('extractions.edit');
+        Route::put('/extractions/{code}', [ExtractionAdminController::class, 'update'])->name('extractions.update');
         Route::patch('/extractions/{code}/statut', [ExtractionAdminController::class, 'toggleStatut'])->name('extractions.toggle-statut');
-        Route::get('/extractions/create', fn () => view('admin.extractions.soon', ['titre' => 'Nouvelle extraction']))->name('extractions.create');
-        Route::get('/extractions/{code}/edit', fn () => view('admin.extractions.soon', ['titre' => "Modifier l'extraction"]))->name('extractions.edit');
+        Route::get('/extractions/{code}/test', fn (string $code) => view('admin.extractions.soon', ['titre' => "Tester l'extraction {$code}"]))->name('extractions.test');
     });
 
     // Espace Utilisateur Métier
