@@ -973,6 +973,7 @@
 
 /* Carte héros (S02) */
 .home-hero-card {
+    padding: 10px;
     background: var(--color-bg-card);
 }
 
@@ -1002,6 +1003,7 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: var(--space-4);
+    padding: 5px;
 }
 
 .card-section-title {
@@ -1039,7 +1041,8 @@
     position: relative;
     flex: 1;
     min-width: 200px;
-    max-width: 560px;
+    max-width: 1300px;
+    display: flex;
 }
 
 .search-icon {
@@ -1052,16 +1055,17 @@
 }
 
 .search-input {
-    padding-left: var(--space-9) !important;
+    padding-left: 35px !important;
     width: 100%;
 }
 
 .select-statut {
-    min-width: 160px;
+    min-width: 100px;
 }
 
 /* Compteur de liste (S03) */
 .liste-compteur {
+    padding: 8px;
     font-size: var(--font-sm);
     color: var(--color-text-muted);
     margin-bottom: var(--space-3);
@@ -1096,9 +1100,205 @@
     font-size: var(--font-sm);
     color: var(--color-text-muted);
     max-width: 380px;
+    padding: 5px;
 }
 
 /* Poids de police medium pour les titres de lignes */
 .fw-medium {
     font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOT 5 – CRÉATION ET ÉDITION D'UNE EXTRACTION (ÉCRAN S04)
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Disposition globale des sections du formulaire S04 */
+.form-section {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--space-8);
+    padding-bottom: var(--space-8);
+    margin-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 900px) {
+    .form-section {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+}
+
+.form-section__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.form-section__badge-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.form-section__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: #eaf3e6;
+    color: #2e6027;
+    font-size: var(--font-xs);
+    font-weight: 700;
+}
+
+.form-section__title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--color-text-heading);
+    margin: 0;
+    font-family: var(--font-family-display);
+}
+
+.form-section__subtitle {
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.form-section__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+/* En-tête de l'éditeur SQL */
+.code-editor-wrapper {
+    background: #1e241e;
+    border-radius: var(--radius-lg);
+    border: 1px solid #2a342a;
+    overflow: hidden;
+}
+
+.code-editor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-4);
+    background: #161a16;
+    border-bottom: 1px solid #283028;
+    font-family: ui-monospace, monospace;
+    font-size: var(--font-xs);
+    color: #94a394;
+}
+
+.code-editor-bar__tag {
+    background: #283428;
+    color: #a4cfa4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.code-editor-container {
+    position: relative;
+    min-height: 140px;
+}
+
+.code-editor-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: var(--space-4);
+    background: transparent;
+    color: #e2ebe2;
+    font-family: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
+    font-size: var(--font-sm);
+    line-height: 1.6;
+    border: none;
+    outline: none;
+    resize: vertical;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Surlignage des paramètres dans l'éditeur SQL */
+.code-editor-container mark.pm {
+    background: rgba(125, 211, 252, 0.25);
+    color: #7dd3fc;
+    border-radius: 3px;
+    padding: 1px 3px;
+}
+
+/* Cartes de paramètres (Section 03) */
+.param-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.param-card__main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.param-card__drag {
+    cursor: grab;
+    color: var(--color-text-muted);
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.param-card__drag:active {
+    cursor: grabbing;
+}
+
+.param-card__options {
+    background: var(--color-bg-body);
+    border: 1px dashed var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    margin-top: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Tableau de colonnes (Section 04) */
+.colonnes-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.colonnes-table th,
+.colonnes-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+    text-align: left;
+    font-size: var(--font-sm);
+}
+
+.colonnes-table th {
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+/* Barre d'actions du bas */
+.form-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    margin-top: var(--space-6);
 }

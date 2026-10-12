@@ -40,7 +40,6 @@ Réaliser les écrans d'administration **S02** (accueil administrateur technique
   - Le rôle `user` (ex: `sonia.d`) reçoit une réponse HTTP 403 Forbidden.
 
 ---
-
 ## 4. Tests
 
 72 tests, 140 assertions — OK (0 échec, 100% vert)
