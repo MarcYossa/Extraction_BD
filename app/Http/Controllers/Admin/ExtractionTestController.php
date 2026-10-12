@@ -115,11 +115,13 @@ class ExtractionTestController extends Controller
         $user = auth()->user()->identifiant;
         $version = (int) ($extraction['version'] ?? 1);
         $sqlLines = $extraction['requete_sql'] ?? [];
-        $sqlTemplate = is_array($sqlLines) ? implode("\n", $sqlLines) : (string) $sqlLines;
 
         // 2. Compilation de la requête SQL
+        $compiledSql = null;
         try {
-            [$compiledSql, $bindings] = $queryCompiler->compile($sqlTemplate, $resolvedParams);
+            $compiled = $queryCompiler->compile($sqlLines, $declaredParams, $resolvedParams);
+            $compiledSql = $compiled['sql'];
+            $bindings = $compiled['bindings'];
         } catch (\Throwable $e) {
             Log::error("Erreur compilation requête test extraction {$code}: " . $e->getMessage());
             return back()->with('error', "Erreur de compilation de la requête SQL.")->withInput();
