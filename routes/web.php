@@ -6,6 +6,7 @@ use App\Http\Controllers\SocleTestController;
 use App\Http\Controllers\Dev\StyleguideController;
 use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\Admin\ExtractionAdminController;
+use App\Http\Controllers\Admin\ExtractionTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,7 +43,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/extractions/{code}/edit', [ExtractionAdminController::class, 'edit'])->name('extractions.edit');
         Route::put('/extractions/{code}', [ExtractionAdminController::class, 'update'])->name('extractions.update');
         Route::patch('/extractions/{code}/statut', [ExtractionAdminController::class, 'toggleStatut'])->name('extractions.toggle-statut');
-        Route::get('/extractions/{code}/test', fn (string $code) => view('admin.extractions.soon', ['titre' => "Tester l'extraction {$code}"]))->name('extractions.test');
+        Route::get('/extractions/{code}/test', [ExtractionTestController::class, 'testForm'])->name('extractions.test');
+        Route::post('/extractions/{code}/test', [ExtractionTestController::class, 'executeTest'])->name('extractions.test.execute');
     });
 
     // Espace Utilisateur Métier
