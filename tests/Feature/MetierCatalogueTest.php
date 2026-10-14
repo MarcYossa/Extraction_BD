@@ -189,14 +189,16 @@ class MetierCatalogueTest extends TestCase
     // Accès direct à une extraction
     // ──────────────────────────────────────────────────────────────────────────
 
-    /** L'URL d'une extraction active renvoie 200 (page provisoire lot 8). */
+    /** L'URL d'une extraction active renvoie 200 (page M03 de saisie des paramètres). */
     public function test_extraction_active_retourne_200(): void
     {
         $this->actingAs($this->user)
              ->get('/extractions/CPT_001')
              ->assertStatus(200)
-             ->assertSee('Bientôt disponible');
+             ->assertSee("Paramètres d'exécution", false);
     }
+
+
 
     /** L'URL directe d'un brouillon renvoie 404. */
     public function test_brouillon_retourne_404(): void

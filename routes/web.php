@@ -59,7 +59,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/catalogue', CatalogueController::class)->name('catalogue');
         Route::get('/extractions/{code}', [ExtractionController::class, 'show'])->name('extractions.show');
+        Route::post('/extractions/{code}/execute', [ExtractionController::class, 'execute'])->name('extractions.execute');
+        Route::get('/extractions/{code}/resultats/{jeton}', [ExtractionController::class, 'resultats'])->name('extractions.resultats');
+        Route::get('/extractions/{code}/csv/{jeton}', [ExtractionController::class, 'csv'])->name('extractions.csv');
     });
+
 
 });
 
