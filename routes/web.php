@@ -27,6 +27,10 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+use App\Http\Controllers\Metier\DashboardController;
+use App\Http\Controllers\Metier\CatalogueController;
+use App\Http\Controllers\Metier\ExtractionController;
+
 /*
 |--------------------------------------------------------------------------
 | Routes protégées par l'authentification
@@ -50,10 +54,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/extractions/{code}/test/resultat/{jeton}', [ExtractionTestController::class, 'resultat'])->name('extractions.test.resultat');
     });
 
-    // Espace Utilisateur Métier
-    Route::get('/dashboard', fn () => view('metier.dashboard'))->name('dashboard');
-    Route::get('/catalogue', fn () => abort(404))->name('catalogue');
-    Route::get('/extractions/{code}', fn () => abort(404))->name('extractions.show');
+    // Espace Utilisateur Métier — réservé au rôle 'user' (D14)
+    Route::middleware('user')->group(function () {
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/catalogue', CatalogueController::class)->name('catalogue');
+        Route::get('/extractions/{code}', [ExtractionController::class, 'show'])->name('extractions.show');
+    });
 
 });
 
