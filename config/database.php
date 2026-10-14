@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'app'),
+    'default' => env('DB_CONNECTION') === 'oracle' ? 'app' : env('DB_CONNECTION', 'app'),
 
     /*
     |--------------------------------------------------------------------------
