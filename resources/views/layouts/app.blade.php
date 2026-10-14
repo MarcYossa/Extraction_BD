@@ -163,5 +163,8 @@
 {{-- Modales globales éventuelles --}}
 {{ $modals ?? '' }}
 
+{{-- Scripts injectés par les vues --}}
+@stack('scripts')
+
 </body>
 </html>
