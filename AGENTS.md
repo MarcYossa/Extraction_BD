@@ -26,7 +26,7 @@ Plateforme interne des BCPME : un administrateur technique crée, teste et publi
 - `app/Services/Extraction/` : `SqlGuard`, `ExtractionRunner`, `ExecutionLogger`.
 - `storage/app/private/extraction/` : `queries.json` (catalogue), `execution_log.json` (journal) – non versionnés.
 - Le format de `queries.json` est défini par `docs/design/catalogue/catalogue-queries-json.md` et le schéma `docs/design/catalogue/queries.schema.json` ; un catalogue de départ est fourni dans `queries.example.json`. Toute extraction enregistrée doit respecter ce schéma **et** les règles de validation du document.
-- `SocleTestController` et la vue `socle-test` sont **temporaires** : ils seront remplacés.
+- Le socle temporaire (`SocleTestController` et la vue `socle-test`) a été **supprimé au lot 8** et remplacé par l'espace métier complet.
 
 ## Respect des maquettes
 - Références : `docs/design/design-tokens.md`, `docs/design/ecrans-admin-technique.md`, `docs/design/ecrans-utilisateur-metier.md` et les captures `docs/design/admin/*.png` et `docs/design/metier/*.png`.
