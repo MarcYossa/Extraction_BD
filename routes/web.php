@@ -6,6 +6,8 @@ use App\Http\Controllers\SocleTestController;
 use App\Http\Controllers\Dev\StyleguideController;
 use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\Admin\ExtractionAdminController;
+use App\Http\Controllers\Admin\ExtractionTestController;
+use App\Http\Controllers\Admin\ExtractionStatutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,8 +43,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/extractions/verifier', [ExtractionAdminController::class, 'verifier'])->name('extractions.verifier');
         Route::get('/extractions/{code}/edit', [ExtractionAdminController::class, 'edit'])->name('extractions.edit');
         Route::put('/extractions/{code}', [ExtractionAdminController::class, 'update'])->name('extractions.update');
-        Route::patch('/extractions/{code}/statut', [ExtractionAdminController::class, 'toggleStatut'])->name('extractions.toggle-statut');
-        Route::get('/extractions/{code}/test', fn (string $code) => view('admin.extractions.soon', ['titre' => "Tester l'extraction {$code}"]))->name('extractions.test');
+        Route::patch('/extractions/{code}/statut', [ExtractionStatutController::class, 'updateStatut'])->name('extractions.statut');
+        Route::patch('/extractions/{code}/toggle-statut', [ExtractionStatutController::class, 'updateStatut'])->name('extractions.toggle-statut');
+        Route::get('/extractions/{code}/test', [ExtractionTestController::class, 'testForm'])->name('extractions.test');
+        Route::post('/extractions/{code}/test', [ExtractionTestController::class, 'executeTest'])->name('extractions.test.execute');
+        Route::get('/extractions/{code}/test/resultat/{jeton}', [ExtractionTestController::class, 'resultat'])->name('extractions.test.resultat');
     });
 
     // Espace Utilisateur Métier

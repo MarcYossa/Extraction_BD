@@ -413,16 +413,50 @@
         {{-- ══════════════════════════════════════════════════════════════════════
            BARRE D'ACTIONS (Pied de page)
         ══════════════════════════════════════════════════════════════════════ --}}
+        <input type="hidden" name="action" x-ref="actionInput" value="enregistrer" />
+
         <div class="form-actions-bar">
             <a href="{{ route('admin.extractions.index') }}" class="btn btn--outline" id="btn-annuler-form">
                 Annuler
             </a>
-            <button type="submit" name="action" value="enregistrer" class="btn btn--secondary" id="btn-enregistrer-brouillon">
+            <button type="submit" name="action" value="enregistrer" class="btn btn--secondary" id="btn-enregistrer-brouillon" @click="$refs.actionInput.value = 'enregistrer'">
                 Enregistrer en brouillon
             </button>
-            <button type="submit" name="action" value="tester" class="btn btn--primary" id="btn-tester-avant-publication">
+            <button type="button" class="btn btn--primary" id="btn-tester-avant-publication" @click="showModalTester = true">
                 Tester avant publication ›
             </button>
+        </div>
+
+        {{-- ══════════════════════════════════════════════════════════════════════
+           S05 – MODALE « Tester cette extraction ? » (06-modale-tester.png)
+        ══════════════════════════════════════════════════════════════════════ --}}
+        <div 
+            class="modal-backdrop" 
+            x-show="showModalTester" 
+            x-transition.opacity 
+            x-cloak 
+            style="display: flex;"
+            @keydown.escape.window="showModalTester = false"
+        >
+            <div class="modal" @click.outside="showModalTester = false">
+                <div class="modal__icon" style="background-color: #fef3c7; color: #d97706; font-size: 24px; font-weight: bold; border-radius: var(--radius-full); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    !
+                </div>
+                <div class="modal__header">
+                    <h3 class="modal__title">Tester cette extraction ?</h3>
+                    <p class="modal__desc">
+                        Les paramètres de l'extraction seront utilisés pour générer un aperçu limité des résultats.
+                    </p>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--outline" @click="showModalTester = false" id="btn-modal-annuler">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn btn--primary" @click="lancerTest()" id="btn-modal-lancer-test">
+                        Lancer le test
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
 </div>
@@ -431,6 +465,7 @@
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('extractionFormBuilder', (initialData) => ({
+        showModalTester: false,
         sql: initialData.sql || '',
         parametres: (initialData.parametres || []).map(p => ({
             nom: p.nom || '',
@@ -564,6 +599,17 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
+        },
+
+        lancerTest() {
+            this.showModalTester = false;
+            if (this.$refs && this.$refs.actionInput) {
+                this.$refs.actionInput.value = 'tester';
+            }
+            const form = document.getElementById('form-extraction');
+            if (form) {
+                form.submit();
+            }
         }
     }));
 });

@@ -138,15 +138,16 @@
                                 {{-- D22 : action rapide désactiver / réactiver --}}
                                 @if (in_array($ext['statut'], ['active', 'inactive']))
                                     <form method="POST"
-                                          action="{{ route('admin.extractions.toggle-statut', $ext['code']) }}"
+                                          action="{{ route('admin.extractions.statut', $ext['code']) }}"
                                           class="form-toggle-statut"
                                           id="form-toggle-{{ strtolower($ext['code']) }}">
                                         @csrf
                                         @method('PATCH')
+                                        <input type="hidden" name="action" value="{{ $ext['statut'] === 'active' ? 'desactiver' : 'reactiver' }}">
                                         <button type="submit"
-                                                class="btn btn--ghost btn--sm btn--danger-on-active"
+                                                class="btn-action-statut {{ $ext['statut'] === 'active' ? 'btn-action-statut--desactiver' : 'btn-action-statut--reactiver' }}"
                                                 id="btn-toggle-{{ strtolower($ext['code']) }}"
-                                                onclick="return confirm('{{ $ext['statut'] === 'active' ? 'Désactiver' : 'Réactiver' }} l\'extraction {{ $ext['code'] }} ?')">
+                                                onclick="return confirm('{{ $ext['statut'] === 'active' ? 'Désactiver cette extraction ? Elle sera retirée du catalogue métier.' : 'Réactiver cette extraction ? Elle sera de nouveau visible dans le catalogue métier.' }}')">
                                             <x-icon name="{{ $ext['statut'] === 'active' ? 'eye-off' : 'eye' }}" size="14" />
                                             {{ $ext['statut'] === 'active' ? 'Désactiver' : 'Réactiver' }}
                                         </button>
