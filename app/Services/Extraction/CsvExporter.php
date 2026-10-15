@@ -47,7 +47,7 @@ class CsvExporter
             $headers = array_map('strtoupper', $keys);
         }
 
-        return response()->streamDownload(function () use ($rows, $colonnes, $keys, $headers) {
+        return new StreamedResponse(function () use ($rows, $colonnes, $keys, $headers) {
             $out = fopen('php://output', 'w');
 
             // BOM UTF-8 : indispensable pour les accents dans Excel
@@ -70,10 +70,11 @@ class CsvExporter
             }
 
             fclose($out);
-        }, $filename, [
+        }, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
+
     }
 
     /**
