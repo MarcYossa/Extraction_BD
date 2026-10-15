@@ -82,7 +82,6 @@ class LogReader
             $normalized[] = [
                 'id'            => $actId,
                 'date'          => $dateStr,
-                'carbon_date'   => $this->parseDate($dateStr),
                 'utilisateur'   => (string) ($raw['utilisateur'] ?? ''),
                 'code'          => $code,
                 'titre'         => $titre,
@@ -98,15 +97,17 @@ class LogReader
             ];
         }
 
-        // Tri antéchronologique (le plus récent d'abord)
+        // Tri antéchronologique par date ISO 8601 (ordre lexicographique équivalent et ultra-rapide)
         usort($normalized, function ($a, $b) {
-            $tA = $a['carbon_date'] ? $a['carbon_date']->timestamp : 0;
-            $tB = $b['carbon_date'] ? $b['carbon_date']->timestamp : 0;
-            return $tB <=> $tA;
+            return strcmp($b['date'], $a['date']);
         });
 
+        // Préparation des bornes de date pour comparaison rapide
+        $debutStr = ! empty($filters['date_debut']) ? (string) $this->parseDate($filters['date_debut'])?->startOfDay()->toIso8601String() : null;
+        $finStr = ! empty($filters['date_fin']) ? (string) $this->parseDate($filters['date_fin'])?->endOfDay()->toIso8601String() : null;
+
         // Application des filtres
-        $filtered = array_filter($normalized, function ($item) use ($filters) {
+        $filtered = array_filter($normalized, function ($item) use ($filters, $debutStr, $finStr) {
             // Filtre strict utilisateur
             if (! empty($filters['utilisateur'])) {
                 if (strtolower($item['utilisateur']) !== strtolower((string) $filters['utilisateur'])) {
@@ -145,19 +146,13 @@ class LogReader
             }
 
             // Filtre date début
-            if (! empty($filters['date_debut'])) {
-                $debut = $this->parseDate($filters['date_debut']);
-                if ($debut && $item['carbon_date'] && $item['carbon_date']->lt($debut->startOfDay())) {
-                    return false;
-                }
+            if ($debutStr !== null && $item['date'] < $debutStr) {
+                return false;
             }
 
             // Filtre date fin
-            if (! empty($filters['date_fin'])) {
-                $fin = $this->parseDate($filters['date_fin']);
-                if ($fin && $item['carbon_date'] && $item['carbon_date']->gt($fin->endOfDay())) {
-                    return false;
-                }
+            if ($finStr !== null && $item['date'] > $finStr) {
+                return false;
             }
 
             return true;
@@ -168,6 +163,12 @@ class LogReader
         $page = max(1, $page);
         $perPage = max(1, $perPage);
         $sliced = $filteredCollection->slice(($page - 1) * $perPage, $perPage)->values();
+
+        // Ajout de Carbon uniquement sur les 50 éléments affichés sur la page
+        $sliced = $sliced->map(function ($item) {
+            $item['carbon_date'] = $this->parseDate($item['date']);
+            return $item;
+        });
 
         return new LengthAwarePaginator(
             $sliced,
@@ -223,7 +224,6 @@ class LogReader
             $normalized[] = [
                 'id'          => $actId,
                 'date'        => $dateStr,
-                'carbon_date' => $this->parseDate($dateStr),
                 'identifiant' => $identifiant,
                 'event'       => $event,
                 'event_label' => $eventLabel,
@@ -235,13 +235,14 @@ class LogReader
 
         // Tri antéchronologique
         usort($normalized, function ($a, $b) {
-            $tA = $a['carbon_date'] ? $a['carbon_date']->timestamp : 0;
-            $tB = $b['carbon_date'] ? $b['carbon_date']->timestamp : 0;
-            return $tB <=> $tA;
+            return strcmp($b['date'], $a['date']);
         });
 
+        $debutStr = ! empty($filters['date_debut']) ? (string) $this->parseDate($filters['date_debut'])?->startOfDay()->toIso8601String() : null;
+        $finStr = ! empty($filters['date_fin']) ? (string) $this->parseDate($filters['date_fin'])?->endOfDay()->toIso8601String() : null;
+
         // Application des filtres
-        $filtered = array_filter($normalized, function ($item) use ($filters) {
+        $filtered = array_filter($normalized, function ($item) use ($filters, $debutStr, $finStr) {
             if (! empty($filters['identifiant'])) {
                 if (strtolower($item['identifiant']) !== strtolower((string) $filters['identifiant'])) {
                     return false;
@@ -268,18 +269,12 @@ class LogReader
                 }
             }
 
-            if (! empty($filters['date_debut'])) {
-                $debut = $this->parseDate($filters['date_debut']);
-                if ($debut && $item['carbon_date'] && $item['carbon_date']->lt($debut->startOfDay())) {
-                    return false;
-                }
+            if ($debutStr !== null && $item['date'] < $debutStr) {
+                return false;
             }
 
-            if (! empty($filters['date_fin'])) {
-                $fin = $this->parseDate($filters['date_fin']);
-                if ($fin && $item['carbon_date'] && $item['carbon_date']->gt($fin->endOfDay())) {
-                    return false;
-                }
+            if ($finStr !== null && $item['date'] > $finStr) {
+                return false;
             }
 
             return true;
@@ -290,6 +285,11 @@ class LogReader
         $page = max(1, $page);
         $perPage = max(1, $perPage);
         $sliced = $filteredCollection->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $sliced = $sliced->map(function ($item) {
+            $item['carbon_date'] = $this->parseDate($item['date']);
+            return $item;
+        });
 
         return new LengthAwarePaginator(
             $sliced,
