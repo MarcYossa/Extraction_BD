@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\SocleTestController;
 use App\Http\Controllers\Dev\StyleguideController;
 use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\Admin\ExtractionAdminController;
@@ -59,7 +58,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/catalogue', CatalogueController::class)->name('catalogue');
         Route::get('/extractions/{code}', [ExtractionController::class, 'show'])->name('extractions.show');
+        Route::post('/extractions/{code}/execute', [ExtractionController::class, 'execute'])->name('extractions.execute');
+        Route::get('/extractions/{code}/resultats/{jeton}', [ExtractionController::class, 'resultats'])->name('extractions.resultats');
+        Route::get('/extractions/{code}/csv/{jeton}', [ExtractionController::class, 'csv'])->name('extractions.csv');
     });
+
 
 });
 
@@ -69,7 +72,6 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 if (app()->environment('local')) {
-    Route::get('/socle-test', [SocleTestController::class, 'index']);
-    Route::get('/socle-test/csv', [SocleTestController::class, 'csv']);
     Route::get('/dev/styleguide', StyleguideController::class)->name('dev.styleguide');
 }
+

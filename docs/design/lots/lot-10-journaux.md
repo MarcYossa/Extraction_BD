@@ -8,10 +8,10 @@
 Donner à l'administrateur un **journal consultable** (exécutions, tests, exports, publications, connexions) et à chaque utilisateur métier son **historique personnel** avec relance.
 
 ## Prérequis
-Lot 9 validé. Décisions **D15 et D16** validées. **Aucune maquette n'existe** pour ces écrans : Marc choisit avant de commencer (a) de les dessiner dans Figma et de joindre les captures, ou (b) de laisser l'agent les construire avec les jetons et composants existants (D16) et de les valider visuellement.
+Lot 9 validé. Décisions **D15 et D16** validées.
 
 ## Documents à lire
-`docs/design/ecrans-admin-technique.md` (S03, motif de liste à réutiliser) · `docs/design/design-tokens.md` · `app/Services/Extraction/ExecutionLogger.php` et le service du journal des connexions du lot 2.
+`docs/design/ecrans-admin-technique.md` (S03, motif de liste à réutiliser) · `docs/design/design-tokens.md` · `app/Services/Extraction/ExecutionLogger.php` et le service du journal des connexions du lot 2 . `docs/design/metier/5- Historique.png`. `docs/design/metier/5.1 - Historique.png`. `docs/design/admin/9- Journal-activités_details.png`. `docs/design/admin/9-1-Journal-activités_details.png`
 
 ## Tâches
 1. [ ] **`LogReader`** : lecture de `execution_log.json` et `auth_log.json` ; filtres (période, utilisateur, extraction, mode, statut) ; tri par date décroissante ; **pagination côté serveur** de 50 entrées ; tolère un fichier vide ou une entrée mal formée sans planter.

@@ -144,38 +144,46 @@ Oracle Amplitude              <- Donnees reelles (apres accord DOSI)
 extraction-bd/
 ├── app/
 │   ├── Http/
-│   │   └── Controllers/
-│   │       ├── Controller.php
-│   │       └── SocleTestController.php       # Temporaire (validation socle)
+│   │   ├── Controllers/
+│   │   │   ├── Admin/                         # Espace administration technique
+│   │   │   ├── Metier/                        # Espace utilisateur métier
+│   │   │   └── Controller.php
 │   ├── Models/
 │   │   └── User.php
 │   └── Services/
 │       └── Extraction/
-│           ├── ExecutionLogger.php            # Journal JSON des executions
-│           ├── ExtractionRunner.php           # Execution SQL parametree + plafond
+│           ├── CsvExporter.php                # Export CSV sécurisé (BOM UTF-8, formules)
+│           ├── ExecutionLogger.php            # Journal JSON des exécutions
+│           ├── ExtractionRunner.php           # Exécution SQL paramétrée + plafond
+│           ├── ParameterResolver.php          # Validation et typage des paramètres
+│           ├── QueryCompiler.php              # Compilation des requêtes paramétrées
+│           ├── ResultStore.php                # Conservation 15 min des résultats
 │           └── SqlGuard.php                   # Garde-fou anti-injection
 │
 ├── config/
-│   ├── database.php                           # Connexion Oracle configuree
+│   ├── database.php                           # Connexion Oracle configurée
 │   └── extraction.php                         # max_rows, timeout, chemins JSON
 │
 ├── database/
-│   └── oracle-test/                           # Base de donnees de test Oracle
-│       ├── 00_setup.sql                       # Script maitre (lancer en SYSDBA)
-│       ├── 01_utilisateurs.sql                # Creation AMP_TEST + APP_RO
-│       ├── 02_tables.sql                      # Tables metier (5 tables)
-│       ├── 03_donnees.sql                     # 600 clients, 100K operations, 400 credits
+│   └── oracle-test/                           # Base de données de test Oracle
+│       ├── 00_setup.sql                       # Script maître (lancer en SYSDBA)
+│       ├── 01_utilisateurs.sql                # Création AMP_TEST + APP_RO
+│       ├── 02_tables.sql                      # Tables métier (5 tables)
+│       ├── 03_donnees.sql                     # 600 clients, 100K opérations, 400 crédits
 │       ├── 04_droits.sql                      # SELECT sur les 5 tables pour APP_RO
-│       ├── 05_verification.sql                # Verification droits + test lecture/ecriture
-│       └── 06_requetes_mvp.sql                # Requetes de reference B01-B07
+│       ├── 05_verification.sql                # Vérification droits + test lecture/écriture
+│       └── 06_requetes_mvp.sql                # Requêtes de référence B01-B07
 │
 ├── docs/
 │   ├── Charte_Projet_Extraction_BD_V1.2.docx
 │   └── Architecture_Projet_Extraction_BD_V1.0.docx
 │
 ├── resources/views/
-│   ├── socle-test.blade.php                   # Vue temporaire (validation socle B01)
+│   ├── admin/                                 # Vues de l'administration technique
+│   ├── components/                            # Composants Blade partagés
+│   ├── metier/                                # Vues de l'espace métier
 │   └── welcome.blade.php
+
 │
 ├── routes/web.php
 ├── storage/app/private/extraction/
@@ -452,9 +460,11 @@ npm run dev
 
 | URL | Description |
 |-----|-------------|
-| `http://localhost:8000` | Page d'accueil |
-| `http://localhost:8000/socle-test` | Test du socle B01 (local uniquement) |
-| `http://localhost:8000/socle-test/csv?agence=1&date_debut=2018-01-01&date_fin=2023-12-31&statut=OUVERT` | Export CSV B01 |
+| `http://localhost:8000` | Redirection vers la page de connexion |
+| `http://localhost:8000/login` | Page de connexion |
+| `http://localhost:8000/dashboard` | Accueil de l'espace métier (rôle `user`) |
+| `http://localhost:8000/catalogue` | Catalogue des extractions actives (rôle `user`) |
+| `http://localhost:8000/admin` | Tableau de bord de l'administrateur technique (rôle `admin`) |
 
 ---
 

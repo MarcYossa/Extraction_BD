@@ -45,7 +45,8 @@ class ResultStore
         int $dureeMs,
         bool $tronque = false,
         ?int $totalLignes = null,
-        array $parametresAffiches = []
+        array $parametresAffiches = [],
+        ?array $rawLignes = null
     ): string {
         $jeton = Str::random(40);
         $now = now();
@@ -62,6 +63,7 @@ class ResultStore
             'parametres_affiches' => $parametresAffiches,
             'colonnes'            => $colonnes,
             'lignes'              => $lignes,
+            'raw_lignes'          => $rawLignes ?? $lignes,
             'total_lignes'        => $totalLignes ?? count($lignes),
             'nb_lignes'           => count($lignes),
             'duree_ms'            => $dureeMs,
