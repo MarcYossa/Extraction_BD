@@ -60,7 +60,7 @@
                     Nouvelle extraction
                 </a>
 
-                <a href="{{ route('admin.logs') }}"
+                <a href="{{ route('admin.logs.index') }}"
                    class="sidebar__nav-item {{ request()->routeIs('admin.logs*') ? 'is-active' : '' }}"
                    id="nav-journal">
                     <x-icon name="history" size="18" />
