@@ -65,6 +65,11 @@ class ExtractionController extends Controller
             }
         }
 
+        // Support du pré-remplissage direct pour l'action « Relancer »
+        if (empty($values) && $request->has('params') && is_array($request->query('params'))) {
+            $values = $request->query('params');
+        }
+
         return view('metier.extractions.show', [
             'extraction'     => $extraction,
             'optionsByParam' => $optionsByParam,

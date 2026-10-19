@@ -18,6 +18,7 @@ class LogReader
         protected ?string $executionLogPath = null,
         protected ?string $authLogPath = null,
     ) {
+        $this->catalogueRepository = $catalogueRepository ?? app(CatalogueRepository::class);
         $this->executionLogPath = $executionLogPath ?? config('extraction.log_file', 'extraction/execution_log.json');
         $this->authLogPath = $authLogPath ?? config('extraction.auth_log_file', 'extraction/auth_log.json');
     }
