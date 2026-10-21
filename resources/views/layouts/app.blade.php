@@ -59,6 +59,13 @@
                     <x-icon name="plus" size="18" />
                     Nouvelle extraction
                 </a>
+
+                <a href="{{ route('admin.logs.index') }}"
+                   class="sidebar__nav-item {{ request()->routeIs('admin.logs*') ? 'is-active' : '' }}"
+                   id="nav-journal">
+                    <x-icon name="history" size="18" />
+                    Journal d'activité
+                </a>
             @else
                 {{-- Menu utilisateur métier --}}
                 <span class="sidebar__section-label">Espace Métier</span>
@@ -75,6 +82,13 @@
                    id="nav-metier-catalogue">
                     <x-icon name="list" size="18" />
                     Catalogue d'extractions
+                </a>
+
+                <a href="{{ route('mes-extractions') }}"
+                   class="sidebar__nav-item {{ request()->routeIs('mes-extractions*') ? 'is-active' : '' }}"
+                   id="nav-metier-historique">
+                    <x-icon name="history" size="18" />
+                    Mon historique
                 </a>
             @endif
 

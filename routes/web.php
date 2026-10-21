@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\Admin\ExtractionAdminController;
 use App\Http\Controllers\Admin\ExtractionTestController;
 use App\Http\Controllers\Admin\ExtractionStatutController;
+use App\Http\Controllers\Admin\LogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 use App\Http\Controllers\Metier\DashboardController;
 use App\Http\Controllers\Metier\CatalogueController;
 use App\Http\Controllers\Metier\ExtractionController;
+use App\Http\Controllers\Metier\MesExtractionsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +53,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/extractions/{code}/test', [ExtractionTestController::class, 'testForm'])->name('extractions.test');
         Route::post('/extractions/{code}/test', [ExtractionTestController::class, 'executeTest'])->name('extractions.test.execute');
         Route::get('/extractions/{code}/test/resultat/{jeton}', [ExtractionTestController::class, 'resultat'])->name('extractions.test.resultat');
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('/logs/export', [LogController::class, 'export'])->name('logs.export');
     });
 
     // Espace Utilisateur Métier — réservé au rôle 'user' (D14)
@@ -61,6 +65,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/extractions/{code}/execute', [ExtractionController::class, 'execute'])->name('extractions.execute');
         Route::get('/extractions/{code}/resultats/{jeton}', [ExtractionController::class, 'resultats'])->name('extractions.resultats');
         Route::get('/extractions/{code}/csv/{jeton}', [ExtractionController::class, 'csv'])->name('extractions.csv');
+        Route::get('/mes-extractions', [MesExtractionsController::class, 'index'])->name('mes-extractions');
+        Route::get('/mes-extractions/export', [MesExtractionsController::class, 'export'])->name('mes-extractions.export');
     });
 
 
