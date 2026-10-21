@@ -13,7 +13,7 @@
 
 {{-- ── Corps du catalogue avec recherche Alpine.js ───────────────── --}}
 <div
-    x-data="catalogueSearch({{ json_encode($extractions) }})"
+    x-data="catalogueSearch({{ json_encode($extractions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }})"
     id="catalogue-search-container"
 >
     {{-- Titre + sous-titre --}}

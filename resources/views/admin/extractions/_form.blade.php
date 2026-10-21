@@ -9,9 +9,9 @@
 @endphp
 
 <div x-data="extractionFormBuilder({
-    sql: {{ json_encode($sqlInitial) }},
-    parametres: {{ json_encode($paramsInitial) }},
-    colonnes: {{ json_encode($colsInitial) }}
+    sql: {{ json_encode($sqlInitial, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }},
+    parametres: {{ json_encode($paramsInitial, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }},
+    colonnes: {{ json_encode($colsInitial, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}
 })">
 
     {{-- Formulaire HTTP principal --}}

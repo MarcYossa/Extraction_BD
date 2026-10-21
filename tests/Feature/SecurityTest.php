@@ -181,8 +181,6 @@ class SecurityTest extends TestCase
     /** PUT sans jeton CSRF → rejet (302, 404 ou 419). */
     public function test_put_admin_sans_csrf_bloque(): void
     {
-        // On utilise une extraction existante : même si CPT_001 est absent,
-        // le contrôleur peut répondre 404 ou le CSRF bloque avant (302/419).
         $response = $this->actingAs($this->admin)->put('/admin/extractions/CPT_001', []);
 
         $this->assertContains(
@@ -191,4 +189,125 @@ class SecurityTest extends TestCase
             'Un PUT admin sans jeton CSRF doit être rejeté ou retourner 404.'
         );
     }
+
+    // ------------------------------------------------------------------ //
+    //  T11 – Exposition de fichiers                                       //
+    // ------------------------------------------------------------------ //
+
+    /** Le fichier .env n'est pas accessible via requête HTTP (404/403). */
+    public function test_fichier_env_non_accessible_via_web(): void
+    {
+        $response = $this->get('/.env');
+        $this->assertContains($response->status(), [403, 404]);
+    }
+
+    /** Le catalogue queries.json n'est pas accessible directement par URL. */
+    public function test_queries_json_non_accessible_via_web(): void
+    {
+        $response = $this->get('/queries.json');
+        $this->assertContains($response->status(), [403, 404]);
+
+        $response2 = $this->get('/storage/app/private/extraction/queries.json');
+        $this->assertContains($response2->status(), [403, 404]);
+    }
+
+    /** Le journal d'exécution n'est pas accessible directement par URL. */
+    public function test_execution_log_non_accessible_via_web(): void
+    {
+        $response = $this->get('/execution_log.json');
+        $this->assertContains($response->status(), [403, 404]);
+
+        $response2 = $this->get('/storage/app/private/extraction/execution_log.json');
+        $this->assertContains($response2->status(), [403, 404]);
+    }
+
+    /** Le journal d'authentification n'est pas accessible directement par URL. */
+    public function test_auth_log_non_accessible_via_web(): void
+    {
+        $response = $this->get('/auth_log.json');
+        $this->assertContains($response->status(), [403, 404]);
+
+        $response2 = $this->get('/storage/app/private/extraction/auth_log.json');
+        $this->assertContains($response2->status(), [403, 404]);
+    }
+
+    /** La base de données SQLite applicative n'est pas accessible par URL. */
+    public function test_database_sqlite_non_accessible_via_web(): void
+    {
+        $response = $this->get('/database/app.sqlite');
+        $this->assertContains($response->status(), [403, 404]);
+    }
+
+    /** Le répertoire private des résultats d'extraction n'est pas accessible. */
+    public function test_storage_private_results_non_accessible_via_web(): void
+    {
+        $response = $this->get('/storage/app/private/results/');
+        $this->assertContains($response->status(), [403, 404]);
+    }
+
+    /** Le lien symbolique public/storage ne doit pas exister (pas d'exposition publique du storage). */
+    public function test_absence_lien_public_storage(): void
+    {
+        $this->assertFalse(
+            file_exists(public_path('storage')),
+            'Le lien public/storage ne doit pas exister.'
+        );
+    }
+
+    // ------------------------------------------------------------------ //
+    //  T12 – Mots de passe et hachage                                     //
+    // ------------------------------------------------------------------ //
+
+    /** app:creer-utilisateur rejette un mot de passe de moins de 12 caractères. */
+    public function test_creer_utilisateur_mot_de_passe_inf_12_caracteres_rejete(): void
+    {
+        $exitCode = Artisan::call('app:creer-utilisateur', [
+            '--identifiant' => 'court.user',
+            '--prenom'      => 'Court',
+            '--nom'         => 'User',
+            '--role'        => 'user',
+            '--password'    => 'Court123', // 8 caractères < 12
+        ]);
+
+        $this->assertEquals(1, $exitCode, 'Un mot de passe de moins de 12 caractères doit échouer.');
+        $this->assertDatabaseMissing('users', [
+            'identifiant' => 'court.user',
+        ]);
+    }
+
+    /** app:creer-utilisateur accepte un mot de passe de 12 caractères ou plus. */
+    public function test_creer_utilisateur_mot_de_passe_12_caracteres_accepte(): void
+    {
+        $exitCode = Artisan::call('app:creer-utilisateur', [
+            '--identifiant' => 'valide.user',
+            '--prenom'      => 'Valide',
+            '--nom'         => 'User',
+            '--role'        => 'user',
+            '--password'    => 'MotDePasse123!', // 14 caractères >= 12
+        ]);
+
+        $this->assertEquals(0, $exitCode);
+        $this->assertDatabaseHas('users', [
+            'identifiant' => 'valide.user',
+        ]);
+    }
+
+    /** Les mots de passe sont hachés avec un algorithme fort (bcrypt / argon2). */
+    public function test_mots_de_passe_haches_avec_algorithme_fort(): void
+    {
+        $user = User::where('identifiant', 'admin.sec')->first();
+        $this->assertNotNull($user);
+
+        // Le mot de passe stocké ne doit jamais être en clair
+        $this->assertNotEquals('MotDePasseTest12', $user->password);
+
+        // Algorithme fort (bcrypt commence par $2y$ ou info['algoName'])
+        $info = password_get_info($user->password);
+        $this->assertContains(
+            $info['algoName'],
+            ['bcrypt', 'argon2i', 'argon2id'],
+            "L'algorithme de hachage doit être fort ; trouvé : {$info['algoName']}"
+        );
+    }
 }
+
