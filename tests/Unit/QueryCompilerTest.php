@@ -87,4 +87,23 @@ class QueryCompilerTest extends TestCase
         $this->assertStringContainsString("BETWEEN TO_DATE(?, 'YYYY-MM-DD') AND TO_DATE(?, 'YYYY-MM-DD')", $result['sql']);
         $this->assertEquals(['2026-01-01', '2026-12-31'], $result['bindings']);
     }
+
+    /**
+     * Test : les apostrophes doublées dans une chaîne ('d''épargne') ne cassent pas le découpage
+     * et un éventuel motif :param dans cette chaîne n'est pas remplacé.
+     */
+    public function test_escaped_single_quotes_inside_string_literals_preserved(): void
+    {
+        $sql = "SELECT * FROM comptes WHERE type = 'compte d''epargne :ignore_ceci' AND agence = :agence";
+
+        $declaredParams = [
+            ['nom' => 'agence', 'type' => 'texte'],
+        ];
+
+        $result = $this->compiler->compile($sql, $declaredParams, ['agence' => 'AG_01']);
+
+        $this->assertStringContainsString("'compte d''epargne :ignore_ceci'", $result['sql']);
+        $this->assertStringContainsString("agence = ?", $result['sql']);
+        $this->assertEquals(['AG_01'], $result['bindings']);
+    }
 }

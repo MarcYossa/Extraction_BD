@@ -471,20 +471,40 @@ class LogReader
 
         try {
             $content = $disk->get($relativePath);
-            if ($content === null || trim($content) === '') {
+            $trimmed = trim($content);
+            if ($trimmed === '') {
                 return [];
             }
 
-            $decoded = json_decode($content, true);
-            if (! is_array($decoded)) {
-                return [];
+            // Si c'est un tableau JSON standard [ ... ]
+            if ($trimmed[0] === '[') {
+                $decoded = json_decode($trimmed, true);
+                if (! is_array($decoded)) {
+                    return [];
+                }
+
+                // Vérifie que les éléments sont des tableaux associatifs
+                $valid = [];
+                foreach ($decoded as $item) {
+                    if (is_array($item)) {
+                        $valid[] = $item;
+                    }
+                }
+
+                return $valid;
             }
 
-            // Vérifie que les éléments sont des tableaux associatifs
+            // Support transparent du format JSON Lines (NDJSON)
+            $lines = explode("\n", $trimmed);
             $valid = [];
-            foreach ($decoded as $item) {
-                if (is_array($item)) {
-                    $valid[] = $item;
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '') {
+                    continue;
+                }
+                $decoded = json_decode($line, true);
+                if (is_array($decoded)) {
+                    $valid[] = $decoded;
                 }
             }
 

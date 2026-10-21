@@ -52,9 +52,14 @@ class AuthLogger
 
             $log[] = $entry;
 
+            // Protection volumétrie : si le journal dépasse 25 000 entrées, conserver les 20 000 plus récentes
+            if (count($log) > 25000) {
+                $log = array_slice($log, -20000);
+            }
+
             ftruncate($handle, 0);
             rewind($handle);
-            fwrite($handle, json_encode($log, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            fwrite($handle, json_encode($log, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             fflush($handle);
             flock($handle, LOCK_UN);
         } finally {

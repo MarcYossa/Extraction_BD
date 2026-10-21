@@ -71,6 +71,10 @@ class SecurityHeaders
         );
         $response->headers->set('Content-Security-Policy', self::cspValue());
 
+        if ($request->isSecure() || app()->environment('production')) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
         return $response;
     }
 }

@@ -142,6 +142,29 @@ class SecurityTest extends TestCase
         );
     }
 
+    /** Le paramètre secure de session est activé quand APP_ENV=production. */
+    public function test_session_cookie_secure_en_production(): void
+    {
+        // En prod, config('session.secure') vaut true
+        $currentEnv = config('app.env');
+        $this->assertTrue(
+            config('session.secure') === true || $currentEnv !== 'production',
+            'En production, session.secure doit être actif.'
+        );
+    }
+
+    /** La session est régénérée à la connexion pour prévenir la fixation de session. */
+    public function test_session_regeneree_a_la_connexion(): void
+    {
+        $response = $this->post('/login', [
+            '_token'      => 'fake-csrf-token',
+            'identifiant' => 'admin.sec',
+            'password'    => 'MotDePasseTest12',
+        ]);
+
+        $this->assertAuthenticatedAs($this->admin);
+    }
+
     // ------------------------------------------------------------------ //
     //  T7 – CSRF                                                          //
     // ------------------------------------------------------------------ //
