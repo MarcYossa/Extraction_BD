@@ -56,7 +56,7 @@ class CreerUtilisateur extends Command
             'prenom'      => ['required', 'string', 'max:50'],
             'nom'         => ['required', 'string', 'max:50'],
             'role'        => ['required', 'in:admin,user'],
-            'password'    => ['required', 'string', 'min:6'],
+            'password'    => ['required', 'string', 'min:12'],
         ]);
 
         if ($validator->fails()) {

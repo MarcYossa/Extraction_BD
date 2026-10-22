@@ -389,335 +389,232 @@ Les valeurs commençant par `=`, `+`, `-`, `@` sont précédées d'une apostroph
 
 ### Prérequis
 
-| Outil | Version |
-|-------|---------|
-| PHP | 8.2+ |
-| Composer | 2.x |
-| Oracle Instant Client | 21.x (pour OCI8) |
-| Oracle Database XE | 21c (XEPDB1) |
-| Node.js + npm | 20+ |
+| Outil | Version requise | Rôle |
+|---|---|---|
+| **PHP** | 8.2+ (recommandé 8.3) avec extensions `pdo_sqlite`, `oci8` | Moteur applicatif |
+| **Composer** | 2.x | Gestionnaire de dépendances PHP |
+| **Oracle Database XE** | 21c (service `XEPDB1`) | Base de données métier (schéma `AMP_TEST`) |
+| **Oracle Instant Client** | 21.x / 19.x | Bibliothèque cliente pour l'extension OCI8 |
+| **Node.js & npm** | 20+ | Compilation des assets Vite & Alpine.js |
 
-### Installation
+### Installation pas à pas
 
 ```bash
-# 1. Cloner le dépôt
-git clone <url> extraction-bd && cd extraction-bd
+# 1. Cloner le dépôt et se positionner dans le dossier
+git clone <url_du_depot> extraction-bd
+cd extraction-bd
 
-# 2. Dépendances PHP
+# 2. Installer les dépendances PHP
 composer install
 
-# 3. Dépendances JavaScript
+# 3. Installer les dépendances front-end et compiler les assets
 npm install
+npm run build
 
-# 4. Configuration
+# 4. Configuration de l'environnement
 cp .env.example .env
 php artisan key:generate
 
-# 5. Créer la base Oracle de test
-cd database/oracle-test
-sqlplus -S "/ as sysdba" @00_setup.sql <MDP_AMP_TEST> <MDP_APP_RO>
-cd ../..
+# 5. Initialiser la base de données applicative SQLite
+# (Note : cette migration concerne STRICTEMENT SQLite local, Oracle n'est jamais touché)
+touch database/app.sqlite
+php artisan migrate
 
-# 6. Vérifier la connexion Oracle
-php tools/test_laravel_db.php
+# 6. Initialiser le catalogue d'extractions initial (si non existant)
+mkdir -p storage/app/private/extraction
+cp docs/design/catalogue/queries.example.json storage/app/private/extraction/queries.json
+
+# 7. Créer un compte administrateur initial (mot de passe min. 12 caractères)
+php artisan app:creer-utilisateur --identifiant=admin.technique --prenom=Admin --nom=Technique --role=admin --password=MotDePasseInitial12!
+
+# 8. (Optionnel) Créer un compte utilisateur métier de test
+php artisan app:creer-utilisateur --identifiant=sonia.d --prenom=Sonia --nom=D. --role=user --password=MotDePasseMetier12!
 ```
 
 ---
 
 ## 10. Configuration
 
-### Variables `.env` clés
+### Configuration `.env` minimale
 
 ```dotenv
 APP_NAME=ExtractionBD
 APP_ENV=local
+APP_KEY=base64:...
+APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-DB_CONNECTION=oracle
-DB_HOST=localhost
-DB_PORT=1521
-DB_DATABASE=XEPDB1
-DB_USERNAME=APP_RO
-DB_PASSWORD=<votre_mdp>
-DB_CHARSET=AL32UTF8
-DB_SERVER_VERSION=12c
+# Base applicative (SQLite local)
+DB_CONNECTION=sqlite
+DB_DATABASE=database/app.sqlite
 
+# Connexion Oracle (Lecture seule APP_RO)
+ORACLE_HOST=localhost
+ORACLE_PORT=1521
+ORACLE_DATABASE=XEPDB1
+ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_USERNAME=APP_RO
+ORACLE_PASSWORD=VotreMotDePasseAppRo
+ORACLE_CHARSET=AL32UTF8
+
+# Plafonds et délais de sécurité
 EXTRACTION_MAX_ROWS=10000
 EXTRACTION_TIMEOUT_SECONDS=60
 ```
 
 ---
 
-## 11. Lancement en développement
+## 11. Lancement de l'Application
 
 ```bash
-# Terminal 1 : serveur PHP
+# Lancement du serveur de développement
 php artisan serve
-
-# Terminal 2 : assets (si modifiés)
-npm run dev
 ```
 
-| URL | Description |
-|-----|-------------|
-| `http://localhost:8000` | Redirection vers la page de connexion |
-| `http://localhost:8000/login` | Page de connexion |
-| `http://localhost:8000/dashboard` | Accueil de l'espace métier (rôle `user`) |
-| `http://localhost:8000/catalogue` | Catalogue des extractions actives (rôle `user`) |
-| `http://localhost:8000/admin` | Tableau de bord de l'administrateur technique (rôle `admin`) |
+L'application est immédiatement accessible sur `http://localhost:8000`.
+
+| URL | Description | Rôle requis |
+|---|---|---|
+| `http://localhost:8000/login` | Page d'authentification unifiée | Public (invité) |
+| `http://localhost:8000/dashboard` | Accueil de l'espace métier | `user` |
+| `http://localhost:8000/catalogue` | Catalogue des extractions actives | `user` |
+| `http://localhost:8000/mes-extractions` | Historique personnel et relance | `user` |
+| `http://localhost:8000/admin` | Tableau de bord technique | `admin` |
+| `http://localhost:8000/admin/extractions` | Gestion CRUD du catalogue d'extractions | `admin` |
+| `http://localhost:8000/admin/logs` | Journal d'audit des exécutions et connexions | `admin` |
+
+### Documentation et Guides disponibles
+- [Guide Administrateur Technique](docs/guides/guide-administrateur.md)
+- [Guide Utilisateur Métier](docs/guides/guide-utilisateur.md)
+- [Checklist de Sécurité Applicative](docs/securite/checklist-securite.md)
 
 ---
 
-## 12. Tests
+## 12. Tests Automatisés
+
+Le projet dispose d'une suite de **232 tests automatisés** garantissant le non-régression, la conformité de sécurité et l'intégrité fonctionnelle.
+
+Trois suites de tests distinctes sont configurées dans `phpunit.xml` :
 
 ```bash
-# Tous les tests
-php artisan test
+# 1. Suite Unit : tests unitaires sans dépendance externe (71 tests)
+vendor\bin\phpunit --testsuite Unit
 
-# Unitaires seuls (pas d'Oracle requis)
-php artisan test --testsuite=Unit
+# 2. Suite Feature : tests applicatifs, matrice des rôles, sécurité, contrôleurs (145 tests)
+vendor\bin\phpunit --testsuite Feature
 
-# Feature (Oracle requis)
-php artisan test --testsuite=Feature
+# 3. Suite Oracle : tests de conformité des 8 extractions MVP sur Oracle XE (16 tests)
+# (Nécessite Oracle XE local avec le compte APP_RO configuré)
+vendor\bin\phpunit --testsuite Oracle
+
+# 4. Exécution complète des suites applicatives (216 tests)
+vendor\bin\phpunit --testsuite Unit,Feature
+
+# 5. Vérification de la matrice rôles × routes (29 routes testées)
+vendor\bin\phpunit tests/Feature/RoutesMatrixTest.php
 ```
-
-| Fichier | Cas | Description |
-|---------|-----|-------------|
-| `tests/Unit/SqlGuardTest.php` | 17 | 5 requêtes autorisées + 12 refusées |
-| `tests/Feature/ExampleTest.php` | 1 | Test de base |
 
 ---
 
 ## 13. Étapes de développement du MVP
 
-> Les étapes **1 à 7** sont déjà réalisées (socle technique validé).
-
----
+L'ensemble des étapes du MVP ont été livrées et validées :
 
 ### ✅ Étape 1 — Initialisation du projet Laravel
-- [x] Laravel 13 + PHP 8.x + yajra/laravel-oci8
-- [x] Configuration `.env` Oracle XE
-- [x] `config/extraction.php`
+- [x] Laravel 13 + PHP 8.x + `yajra/laravel-oci8`
+- [x] Configuration `.env` Oracle XE (compte `APP_RO`)
+- [x] Fichier de configuration `config/extraction.php`
 
 ### ✅ Étape 2 — Base de données Oracle de test
-- [x] `01_utilisateurs.sql` — AMP_TEST + APP_RO
-- [x] `02_tables.sql` — 5 tables avec contraintes et index
-- [x] `03_donnees.sql` — 600 clients, 100 000 opérations, 400 crédits
-- [x] `04_droits.sql` — SELECT uniquement pour APP_RO
-- [x] `05_verification.sql` — vérification droits
-- [x] `06_requetes_mvp.sql` — requêtes B01–B07 avec bind variables
+- [x] Schéma `AMP_TEST` (5 tables avec contraintes et index)
+- [x] Jeu de données de test (600 clients, 100 000 opérations, 400 crédits)
+- [x] Compte applicatif `APP_RO` : droits restreints à `SELECT` uniquement
+- [x] Vérification d'intégrité et interdiction totale d'écriture
 
 ### ✅ Étape 3 — Couche sécurité Oracle
-- [x] Validation du jeu de données (setup.log)
-- [x] Tests d'injection SQL avec bind variables en SQL*Plus
-- [x] Vérification écriture impossible via APP_RO
+- [x] Validation du jeu de données (`setup.log`)
+- [x] Tests d'injection SQL avec bind variables
+- [x] Vérification de l'isolation du compte `APP_RO`
 
 ### ✅ Étape 4 — Services applicatifs
-- [x] `SqlGuard` — filtre SELECT uniquement
-- [x] `ExtractionRunner` — exécution paramétrée + plafond
-- [x] `ExecutionLogger` — journalisation JSON thread-safe
+- [x] `SqlGuard` : analyseur syntaxique garantissant les requêtes en lecture seule
+- [x] `QueryCompiler` : compilation des requêtes nommées vers des variables liées positionnelles
+- [x] `ExtractionRunner` : exécution sécurisée avec plafond et gestion du timeout
+- [x] `ExecutionLogger` : journalisation thread-safe (`flock`) avec protection volumétrique
+- [x] `AuthLogger` : journalisation d'audit des connexions
 
-### ✅ Étape 5 — Tests unitaires SqlGuard
-- [x] 17 cas de test (requêtes autorisées + refusées)
+### ✅ Étape 5 — Tests unitaires SqlGuard & Services
+- [x] Tests d'acceptation et de rejet `SqlGuard`
+- [x] Tests de compilation `QueryCompiler` (gestion des apostrophes doublées)
 
-### ✅ Étape 6 — Contrôleur + vue de validation du socle
-- [x] `SocleTestController` — formulaire B01, validation, affichage, CSV
-- [x] Vue `socle-test.blade.php` — formulaire + tableau de résultats
-- [x] Routes `/socle-test` et `/socle-test/csv`
+### ✅ Étape 6 — Gestion des Résultats et Export CSV
+- [x] `ResultStore` : stockage temporaire des résultats pendant 15 minutes avec jeton unique
+- [x] `CsvExporter` : streaming CSV avec BOM UTF-8 et neutralisation des formules Excel
+- [x] Commande Artisan `app:purge-resultats` pour le nettoyage automatisé
 
-### ✅ Étape 7 — Validation du socle technique
-- [x] Connexion Oracle Laravel ↔ Oracle XE confirmée
-- [x] Extraction B01 fonctionnelle avec plafond
-- [x] Export CSV fonctionnel (BOM UTF-8)
-- [x] Journal d'exécution JSON opérationnel
+### ✅ Étape 7 — Authentification et Gestion des Rôles
+- [x] Authentification par identifiant unique (`prenom.nom`) et mot de passe (min. 12 car.)
+- [x] Protection contre les attaques par force brute (5 tentatives/min)
+- [x] Deux rôles étanches : `admin` et `user`
+- [x] Matrice automatisée rôles × routes (`RoutesMatrixTest`)
 
----
+### ✅ Étape 8 — Catalogue d'Extractions JSON
+- [x] Format structuré conforme au schéma `queries.schema.json`
+- [x] `CatalogueRepository` : lecture et écriture sécurisée du catalogue
+- [x] Implémentation complète des extractions de référence B01 à B08
 
-### 🔲 Étape 8 — Authentification et gestion des rôles
+### ✅ Étape 9 — Espace d'Administration Technique
+- [x] Liste des extractions avec recherche et filtres par statut (`/admin/extractions`)
+- [x] Formulaire complet de création/édition d'extractions (`/admin/extractions/create`)
+- [x] Cycle de vie garanti : création/modification en `brouillon` -> test live obligatoire -> `actif`
+- [x] Module de test en direct avec aperçu des 100 premières lignes et `COUNT(*)` exact (D21)
+- [x] Désactivation et réactivation sans suppression physique (D10)
+- [x] Journal d'activité d'administration avec filtres et export CSV (`/admin/logs`)
 
-**Objectif :** Sécuriser l'accès avec deux rôles : `admin` et `user`.
+### ✅ Étape 10 — Espace Utilisateur Métier
+- [x] Tableau de bord d'accueil (`/dashboard`)
+- [x] Catalogue avec recherche instantanée insensible à la casse et aux accents (`/catalogue`)
+- [x] Formulaire paramétrique auto-généré selon les types de champs (`/extractions/{code}`)
+- [x] Tableau paginé de résultats (50 lignes/page) avec avertissement de plafond atteint (D21)
+- [x] Téléchargement immédiat en CSV compatible Microsoft Excel
+- [x] Historique personnel avec bouton « Relancer » et critères pré-remplis (`/mes-extractions`)
 
-**Actions :**
-- [ ] Migration `create_users_table` + colonne `role` (`admin`/`user`) + colonne `agence_id` optionnelle
-- [ ] Seeder de l'administrateur par défaut
-- [ ] Formulaire de connexion `/login` avec CSRF
-- [ ] Middleware `EnsureAuthenticated` — protège toutes les routes authentifiées
-- [ ] Middleware `EnsureIsAdmin` — protège les routes `/admin/*`
-- [ ] Déconnexion automatique après inactivité (`SESSION_LIFETIME`)
-- [ ] Journalisation des connexions (succès et échecs)
+### ✅ Étape 11 — Design System & Interface Utilisateur
+- [x] Respect rigoureux des maquettes Figma et tokens CSS (`design-tokens.md`)
+- [x] Palette de couleurs BCPME, typographies et composants partagés (cartes, pastilles, tables)
+- [x] Composant d'icône SVG `x-icon` sans dépendance externe
+- [x] Interactivité réactive Alpine.js sans build lourd
 
-**Fichiers à créer :**
-```
-database/migrations/YYYY_create_users_table.php
-database/seeders/AdminUserSeeder.php
-app/Http/Middleware/EnsureIsAdmin.php
-app/Http/Controllers/Auth/LoginController.php
-resources/views/auth/login.blade.php
-```
-
----
-
-### 🔲 Étape 9 — Catalogue d'extractions JSON
-
-**Objectif :** Définir le format et le service de gestion du catalogue `queries.json`.
-
-**Format `storage/app/private/extraction/queries.json` :**
-```json
-[
-  {
-    "id": "B01",
-    "titre": "Comptes ouverts par agence, période et statut",
-    "description": "Liste les comptes d'une agence ouverts sur une période donnée.",
-    "publie": true,
-    "sql": "SELECT a.nom_agence, c.num_compte ... WHERE c.agence_id = ? AND ...",
-    "parametres": [
-      { "nom": "agence",     "label": "Agence",        "type": "integer", "required": true },
-      { "nom": "date_debut", "label": "Date de début", "type": "date",    "required": true },
-      { "nom": "date_fin",   "label": "Date de fin",   "type": "date",    "required": true },
-      { "nom": "statut",     "label": "Statut",        "type": "select",  "required": true,
-        "options": ["OUVERT", "BLOQUE", "CLOTURE"] }
-    ]
-  }
-]
-```
-
-**Actions :**
-- [ ] `QueryCatalog.php` — lecture/écriture du JSON + validation du schéma
-- [ ] `QueryBuilder.php` — construction de la requête SQL depuis le catalogue
-- [ ] Enrichir `ExtractionRunner` pour accepter un objet `QueryDefinition`
-- [ ] Créer `queries.json` avec les 8 extractions B01–B08
-
-**Fichiers à créer :**
-```
-app/Services/Extraction/QueryCatalog.php
-app/Services/Extraction/QueryBuilder.php
-storage/app/private/extraction/queries.json
-```
-
----
-
-### 🔲 Étape 10 — Espace administration
-
-**Objectif :** Interface CRUD pour gérer le catalogue d'extractions.
-
-**Routes à créer :**
-| Méthode | URL | Action |
-|---------|-----|--------|
-| GET | `/admin/extractions` | Liste des extractions |
-| GET\|POST | `/admin/extractions/create` | Créer une extraction |
-| GET\|PUT | `/admin/extractions/{id}/edit` | Modifier une extraction |
-| POST | `/admin/extractions/{id}/test` | Tester en live |
-| PATCH | `/admin/extractions/{id}/toggle` | Publier / Dépublier |
-| DELETE | `/admin/extractions/{id}` | Supprimer |
-| GET | `/admin/logs` | Journal des exécutions |
-
-**Fichiers à créer :**
-```
-app/Http/Controllers/Admin/ExtractionAdminController.php
-resources/views/admin/extractions/index.blade.php
-resources/views/admin/extractions/create.blade.php
-resources/views/admin/extractions/edit.blade.php
-resources/views/admin/logs/index.blade.php
-```
-
----
-
-### 🔲 Étape 11 — Espace utilisateur métier
-
-**Objectif :** Interface permettant à un utilisateur authentifié de lancer des extractions.
-
-**Routes à créer :**
-| Méthode | URL | Action |
-|---------|-----|--------|
-| GET | `/dashboard` | Tableau de bord (extractions publiées) |
-| GET | `/extractions/{id}` | Formulaire paramétrique (auto-généré) |
-| POST | `/extractions/{id}/execute` | Exécuter + afficher résultats |
-| GET | `/extractions/{id}/csv` | Télécharger CSV |
-| GET | `/mes-extractions` | Historique personnel |
-
-**Fichiers à créer :**
-```
-app/Http/Controllers/ExtractionController.php
-resources/views/dashboard.blade.php
-resources/views/extractions/show.blade.php
-resources/views/extractions/result.blade.php
-resources/views/mes-extractions.blade.php
-```
-
----
-
-### 🔲 Étape 12 — Interface utilisateur (UI/UX)
-
-**Objectif :** Interface web propre, professionnelle et responsive.
-
-- [ ] Layout principal `layouts/app.blade.php` (header, navigation, footer)
-- [ ] Layout admin `layouts/admin.blade.php`
-- [ ] Intégration Alpine.js (toggle, confirmations, affichage conditionnel)
-- [ ] Page de connexion avec design professionnel
-- [ ] Tableau de résultats avec pagination côté client
-- [ ] Indicateur de chargement pendant l'exécution Oracle
-- [ ] Bannière d'avertissement si résultat tronqué
-- [ ] Design responsive (mobile first)
-- [ ] Favicon et métadonnées SEO
-
----
-
-### 🔲 Étape 13 — Tests complets
-
-**Objectif :** Couverture de tests complète pour valider le MVP.
-
-- [ ] `Unit/QueryCatalogTest.php` — lecture, écriture, validation schéma JSON
-- [ ] `Unit/QueryBuilderTest.php` — construction SQL avec paramètres valides/invalides
-- [ ] `Unit/ExtractionRunnerTest.php` — plafond, détection truncation
-- [ ] `Feature/AuthTest.php` — connexion, déconnexion, accès refusé sans auth
-- [ ] `Feature/ExtractionB01Test.php` — exécution B01 complète (Oracle requis)
-- [ ] `Feature/AdminExtractionTest.php` — CRUD extractions (admin seul)
-- [ ] `Feature/CsvExportTest.php` — BOM, headers, protection injection Excel
-- [ ] `Feature/ExecutionLogTest.php` — enregistrement journal
-
-```bash
-php artisan test --coverage
-```
-
----
-
-### 🔲 Étape 14 — Préparation à la mise en production (Amplitude)
-
-**Objectif :** Connecter la plateforme à la base Amplitude réelle après accord DOSI.
-
-- [ ] Documenter le schéma cible Amplitude (colonnes, types) avec la DOSI
-- [ ] Adapter les requêtes SQL du catalogue (`AMP_TEST.*` → `SCHEMA_AMPLITUDE.*`)
-- [ ] Externaliser les noms de schéma dans `.env` (`DB_SCHEMA=AMP_TEST`)
-- [ ] Tester les requêtes en environnement de recette sur Amplitude
-- [ ] Activer HTTPS (certificat SSL, reverse proxy)
-- [ ] Configurer timeout Oracle selon SLA DOSI
-- [ ] Rédiger le guide d'exploitation
-- [ ] Former les administrateurs et utilisateurs métier
-- [ ] Validation finale DOSI
+### ✅ Étape 12 — Qualité, Sécurité et Documentation
+- [x] 232 tests automatisés (Unit, Feature, Oracle)
+- [x] En-têtes HTTP de sécurité (`nosniff`, `frame-ancestors 'none'`, CSP stricte sans CDN)
+- [x] Protection CSRF sur toutes les requêtes modifiantes
+- [x] Protection XSS validée (Blade + JSON Hex dans Alpine)
+- [x] Inaccessibilité des fichiers sensibles (`.env`, `queries.json`, `app.sqlite`, journaux)
+- [x] Rate limiting sur l'authentification (5/min) et les exécutions/exports (30/min)
+- [x] Audit des dépendances vierge (`composer audit`, `npm audit`)
+- [x] Revue critique des 10 points sensibles et application des correctifs retenus
+- [x] Rédaction du README final, des guides d'utilisation et de la checklist de sécurité
 
 ---
 
 ## 14. Glossaire
 
 | Terme | Définition |
-|-------|------------|
+|---|---|
 | **Amplitude** | Core Banking System Oracle de l'établissement |
 | **AMP_TEST** | Schéma Oracle de test (données 100 % fictives) |
-| **APP_RO** | Compte Oracle applicatif Laravel — SELECT uniquement |
-| **Bind variable** | Paramètre lié (`?`) transmis séparément du SQL — prévient l'injection |
-| **BOM UTF-8** | `\xEF\xBB\xBF` — en-tête CSV pour ouverture correcte dans Excel |
-| **CBS** | Core Banking System — logiciel central de gestion bancaire |
-| **Catalogue** | `queries.json` — liste des extractions disponibles |
-| **DOSI** | Direction/Département de l'Organisation et des Systèmes d'Information |
-| **Extraction** | Requête SQL paramétrée publiée dans le catalogue |
-| **Journal** | `execution_log.json` — chaque exécution enregistrée (qui, quoi, quand, volume) |
-| **OCI8** | Extension PHP pour Oracle (`yajra/laravel-oci8`) |
-| **Plafond** | Nombre max de lignes retournées (`EXTRACTION_MAX_ROWS`) |
-| **PME** | Petite et Moyenne Entreprise — segment client |
-| **SqlGuard** | Service Laravel filtrant les requêtes (SELECT uniquement) |
-| **XEPDB1** | Pluggable Database Oracle Express Edition (développement) |
-| **XAF** | Franc CFA — devise principale des comptes |
+| **APP_RO** | Compte Oracle applicatif Laravel — `SELECT` uniquement |
+| **Bind variable** | Paramètre lié (`?`) transmis séparément du SQL — prévient toute injection SQL |
+| **BOM UTF-8** | `\xEF\xBB\xBF` — en-tête CSV garantissant l'ouverture sans distorsion d'accents dans Excel |
+| **Catalogue** | `queries.json` — fichier répertoriant l'ensemble des définitions d'extractions |
+| **DOSI** | Direction de l'Organisation et des Systèmes d'Information |
+| **Extraction** | Requête SQL paramétrée et publiée dans le catalogue |
+| **OCI8** | Extension native PHP pour la communication haute performance avec Oracle Database |
+| **Plafond** | Volume maximal de lignes retournées par extraction (`EXTRACTION_MAX_ROWS`, défaut 10 000) |
+| **SqlGuard** | Service applicatif vérifiant que chaque requête est strictement en lecture seule |
 
 ---
 
-*Projet de stage — BCPME — 2026 | Laravel 13 + Oracle XE + PHP 8.x*
+*Plateforme Extraction BD — BCPME — 2026 | Laravel 13 + Oracle XE + PHP 8.x*
+

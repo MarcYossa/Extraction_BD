@@ -62,13 +62,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/catalogue', CatalogueController::class)->name('catalogue');
         Route::get('/extractions/{code}', [ExtractionController::class, 'show'])->name('extractions.show');
-        Route::post('/extractions/{code}/execute', [ExtractionController::class, 'execute'])->name('extractions.execute');
+        // Limitation de débit : 30 exécutions par minute par utilisateur (protection Oracle, T10)
+        Route::post('/extractions/{code}/execute', [ExtractionController::class, 'execute'])
+            ->middleware('throttle:30,1')
+            ->name('extractions.execute');
         Route::get('/extractions/{code}/resultats/{jeton}', [ExtractionController::class, 'resultats'])->name('extractions.resultats');
-        Route::get('/extractions/{code}/csv/{jeton}', [ExtractionController::class, 'csv'])->name('extractions.csv');
+        // Limitation de débit : 30 exports CSV par minute par utilisateur (protection Oracle, T10)
+        Route::get('/extractions/{code}/csv/{jeton}', [ExtractionController::class, 'csv'])
+            ->middleware('throttle:30,1')
+            ->name('extractions.csv');
         Route::get('/mes-extractions', [MesExtractionsController::class, 'index'])->name('mes-extractions');
-        Route::get('/mes-extractions/export', [MesExtractionsController::class, 'export'])->name('mes-extractions.export');
+        // Limitation de débit : 30 exports historique par minute par utilisateur (T10)
+        Route::get('/mes-extractions/export', [MesExtractionsController::class, 'export'])
+            ->middleware('throttle:30,1')
+            ->name('mes-extractions.export');
     });
-
 
 });
 

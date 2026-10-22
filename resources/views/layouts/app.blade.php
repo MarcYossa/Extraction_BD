@@ -25,7 +25,7 @@
 
         {{-- Logo --}}
         <div class="sidebar__logo">
-            <x-icon name="database" size="24" style="color:var(--color-accent)" />
+            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" width="60" height="60" />
             <div>
                 <div class="sidebar__logo-name">Extraction BD</div>
                 <div class="sidebar__logo-org">BCPME</div>

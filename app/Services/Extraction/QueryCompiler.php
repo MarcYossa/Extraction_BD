@@ -32,8 +32,8 @@ class QueryCompiler
         $bindings = [];
 
         // Découpage du SQL en segments hors apostrophes et segments entre apostrophes
-        // preg_split avec PREG_SPLIT_DELIM_CAPTURE permet d'isoler les chaînes '...'
-        $parts = preg_split("/('[^']*')/", $rawSql, -1, PREG_SPLIT_DELIM_CAPTURE);
+        // Le motif '(?:[^']|'')*' gère correctement les apostrophes échappées (ex: 'd''épargne')
+        $parts = preg_split("/('(?:[^']|'')*')/", $rawSql, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         $compiledSql = '';
 

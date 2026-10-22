@@ -230,7 +230,7 @@
                                         <button
                                             type="button"
                                             class="btn-consulter-details"
-                                            @click="selectedActivity = {{ json_encode($item) }}"
+                                            @click="selectedActivity = {{ json_encode($item, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
                                             id="btn-consulter-{{ $item['id'] }}"
                                         >
                                             Consulter

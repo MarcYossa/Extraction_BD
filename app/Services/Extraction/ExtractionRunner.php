@@ -40,11 +40,20 @@ class ExtractionRunner
         try {
             $connection = DB::connection('oracle');
             $pdo = $connection->getPdo();
-            if ($pdo && function_exists('oci_set_call_timeout') && is_resource($pdo)) {
-                @oci_set_call_timeout($pdo, $timeout * 1000);
+            $resource = null;
+
+            // Yajra Oci8 PDO wrapper expose getConnection() pour le descripteur natif OCI8
+            if (is_object($pdo) && method_exists($pdo, 'getConnection')) {
+                $resource = $pdo->getConnection();
+            } elseif (is_resource($pdo) || (is_object($pdo) && get_class($pdo) === 'OCI-Lob')) {
+                $resource = $pdo;
             }
-        } catch (Throwable $e) {
-            // Ignorer si la sous-connexion n'est pas un ressource OCI8 directe (ex: SQLite en test)
+
+            if ($resource && function_exists('oci_set_call_timeout')) {
+                @oci_set_call_timeout($resource, $timeout * 1000);
+            }
+        } catch (\Throwable $e) {
+            // Tolérance silencieuse si la sous-connexion n'est pas une ressource OCI8 directe (ex: SQLite en test)
         }
 
         $start = microtime(true);

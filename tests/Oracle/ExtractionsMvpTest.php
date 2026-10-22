@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Oracle;
 
 use App\Services\Extraction\CatalogueRepository;
 use App\Services\Extraction\ExtractionRunner;

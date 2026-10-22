@@ -3,6 +3,7 @@
 namespace App\Services\Extraction;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -51,6 +52,14 @@ class ListOptionsProvider
             $limitedSql = "SELECT * FROM ({$sql}) WHERE ROWNUM <= 500";
 
             $rows = DB::connection('oracle')->select($limitedSql);
+
+            if (count($rows) >= 500) {
+                Log::warning(sprintf(
+                    "Plafond de 500 options atteint pour le paramètre '%s' (liste tronquée).",
+                    $param['nom'] ?? 'inconnu'
+                ));
+            }
+
             foreach ($rows as $row) {
                 $rowArr = (array) $row;
                 // Normaliser les clés en minuscules
