@@ -275,4 +275,51 @@ class AdminTestPublishTest extends TestCase
         $extApres = $this->repository->find('CPT_001');
         $this->assertSame('active', $extApres['statut']);
     }
+
+    /**
+     * Test avec 0 ligne retournée : affiche l'avertissement mais le test reste réussi.
+     */
+    public function test_execution_du_test_avec_zero_ligne_affiche_avertissement_et_reste_reussi(): void
+    {
+        $optionsMock = $this->createMock(ListOptionsProvider::class);
+        $optionsMock->method('getOptions')->willReturn([
+            ['valeur' => '1', 'libelle' => 'Agence Principale'],
+        ]);
+        $this->app->instance(ListOptionsProvider::class, $optionsMock);
+
+        $runnerMock = $this->createMock(ExtractionRunner::class);
+        $runnerMock->method('run')->willReturn([
+            'columns'     => ['numero_compte', 'solde'],
+            'rows'        => [],
+            'count'       => 0,
+            'truncated'   => false,
+            'duration_ms' => 30,
+            'max_rows'    => 100,
+        ]);
+        $this->app->instance(ExtractionRunner::class, $runnerMock);
+
+        $response = $this->actingAs($this->admin)->post('/admin/extractions/CPT_001/test', [
+            'date_debut' => '2026-01-01',
+            'date_fin'   => '2026-12-31',
+            'agence'     => '1',
+            'clotures'   => '0',
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect();
+
+        // Le dernier test est bien marqué comme 'reussi' avec 0 ligne
+        $updated = $this->repository->find('CPT_001');
+        $this->assertNotNull($updated['dernier_test']);
+        $this->assertSame('reussi', $updated['dernier_test']['resultat']);
+        $this->assertEquals(0, $updated['dernier_test']['nb_lignes']);
+
+        // Sur l'écran de résultat S07 : présence de l'avertissement
+        $location = $response->headers->get('Location');
+        $getRes = $this->actingAs($this->admin)->get($location);
+        $getRes->assertStatus(200);
+        $getRes->assertSee("Exécution terminée avec succès");
+        $getRes->assertSee("Aucune ligne : vérifiez les valeurs saisies");
+        $getRes->assertSee("0 lignes retournées");
+    }
 }

@@ -28,6 +28,15 @@
 {{-- Bandeau des paramètres utilisés --}}
 <x-params-bandeau :items="$resultat['parametres_affiches'] ?? []" />
 
+{{-- Avertissement si 0 ligne retournée (le test reste réussi) --}}
+@if (($resultat['total_lignes'] ?? count($resultat['lignes'] ?? [])) === 0)
+    <div style="margin-bottom: var(--space-4);" id="alerte-zero-ligne">
+        <x-alert type="warning">
+            Aucune ligne : vérifiez les valeurs saisies
+        </x-alert>
+    </div>
+@endif
+
 {{-- Carte des résultats --}}
 <div class="card" style="padding: var(--space-6); background: var(--color-bg-card);">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
