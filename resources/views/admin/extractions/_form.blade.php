@@ -544,7 +544,7 @@ document.addEventListener('alpine:init', () => {
                 nom: 'param_' + (this.parametres.length + 1),
                 libelle: 'Nouveau paramètre',
                 type: 'texte',
-                obligatoire: false,
+                obligatoire: true,
                 longueur_max: '',
                 min: '',
                 max: '',
