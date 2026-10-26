@@ -157,6 +157,17 @@ class CatalogueValidator
                     $errors[] = sprintf("Règle 8 : Le paramètre [%s] fait référence à apres_ou_egal='%s' qui n'est pas un paramètre date valide.", $pName, $param['apres_ou_egal']);
                 }
             }
+
+            // Règle 11 : Gestion obligatoire / facultatif dans le SQL
+            $isObligatoire = (bool) ($param['obligatoire'] ?? false);
+            $hasIsNull = (bool) preg_match('/(?<![a-zA-Z0-9_]):' . preg_quote($pName, '/') . '(?![a-zA-Z0-9_])\s+IS\s+NULL\b/i', $sqlCleaned);
+            $hasCoalesceOrNvl = (bool) preg_match('/\b(?:COALESCE|NVL)\s*\([^)]*?(?<![a-zA-Z0-9_]):' . preg_quote($pName, '/') . '(?![a-zA-Z0-9_])[^)]*?\)/i', $sqlCleaned);
+
+            if ($isObligatoire && $hasIsNull) {
+                $errors[] = sprintf("Règle 11 : Le paramètre obligatoire [%s] ne doit pas apparaître dans le motif ':%s IS NULL' de la requête.", $pName, $pName);
+            } elseif (! $isObligatoire && ($param['type'] ?? '') !== 'booleen' && ! $hasIsNull && ! $hasCoalesceOrNvl) {
+                $errors[] = sprintf("Règle 11 : Le paramètre facultatif [%s] doit être géré par le motif ':%s IS NULL' ou par une fonction COALESCE / NVL dans la requête.", $pName, $pName);
+            }
         }
 
         // Vérification des deux sens pour la règle 3
