@@ -17,7 +17,7 @@
     <div class="guest-panel-left">
         {{-- Logo --}}
         <div class="guest-panel-left__logo">
-            <x-icon name="database" size="22" style="color:var(--color-accent)" />
+            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" width="60" height="60" />
             <span class="guest-panel-left__logo-name">Extraction BD</span>
         </div>
 
