@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', 'Connexion') — Extraction BD</title>
     <meta name="description" content="Connexion à la plateforme Extraction BD — BCPME." />
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -17,7 +18,7 @@
     <div class="guest-panel-left">
         {{-- Logo --}}
         <div class="guest-panel-left__logo">
-            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" width="60" height="60" />
+            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" class="guest-panel-left__logo-img"/>
             <span class="guest-panel-left__logo-name">Extraction BD</span>
         </div>
 

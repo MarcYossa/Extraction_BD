@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', 'Extraction BD') — BCPME</title>
     <meta name="description" content="@yield('meta-description', 'Plateforme interne d\'extractions de données BCPME.')" />
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -25,7 +26,7 @@
 
         {{-- Logo --}}
         <div class="sidebar__logo">
-            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" width="60" height="60" />
+            <img src="{{ asset('BC-PME.jpg') }}" alt="Logo BCPME" class="sidebar__logo-img"/>
             <div>
                 <div class="sidebar__logo-name">Extraction BD</div>
                 <div class="sidebar__logo-org">BCPME</div>

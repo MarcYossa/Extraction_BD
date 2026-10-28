@@ -22,7 +22,7 @@ L'accès à l'espace technique s'effectue sur l'URL `/login`.
 
 ![Écran de connexion](../design/admin/01-connexion.png)
 
-1. Saisissez votre identifiant technique (format `prenom.nom`, par exemple `amine.m`).
+1. Saisissez votre identifiant technique (format `prenom.nom`, par exemple `kamga.eno`).
 2. Saisissez votre mot de passe (sécurisé, minimum 12 caractères).
 3. Cliquez sur **Se connecter**.
 
