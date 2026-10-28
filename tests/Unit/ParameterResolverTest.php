@@ -95,4 +95,25 @@ class ParameterResolverTest extends TestCase
 
         $this->resolver->resolve($params, ['agence' => '999'], $allowed);
     }
+
+    public function test_throws_when_mandatory_parameter_is_empty_string(): void
+    {
+        $this->expectException(ValidationException::class);
+        $params = [
+            ['nom' => 'agence', 'libelle' => 'Agence', 'type' => 'liste', 'obligatoire' => true, 'option_toutes' => '— Toutes les agences —'],
+        ];
+
+        // Doit refuser la chaîne vide même si option_toutes est définie
+        $this->resolver->resolve($params, ['agence' => '']);
+    }
+
+    public function test_throws_when_mandatory_text_is_only_whitespace(): void
+    {
+        $this->expectException(ValidationException::class);
+        $params = [
+            ['nom' => 'code_client', 'libelle' => 'Code client', 'type' => 'texte', 'obligatoire' => true],
+        ];
+
+        $this->resolver->resolve($params, ['code_client' => '   ']);
+    }
 }

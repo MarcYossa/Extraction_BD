@@ -23,7 +23,7 @@
           "nom": "agence",
           "libelle": "Agence",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Toutes les agences —",
           "source": {
             "type": "requete",
@@ -125,7 +125,7 @@
           "nom": "agence",
           "libelle": "Agence",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Toutes les agences —",
           "source": {
             "type": "requete",
@@ -140,7 +140,7 @@
           "nom": "statut",
           "libelle": "Statut du client",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Tous les statuts —",
           "source": {
             "type": "fixe",
@@ -233,7 +233,7 @@
           "nom": "agence",
           "libelle": "Agence",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Toutes les agences —",
           "source": {
             "type": "requete",
@@ -270,7 +270,7 @@
           "nom": "type_operation",
           "libelle": "Type d'opération",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Tous les types —",
           "source": {
             "type": "fixe",
@@ -363,7 +363,7 @@
           "nom": "agence",
           "libelle": "Agence",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Toutes les agences —",
           "source": {
             "type": "requete",
@@ -392,7 +392,7 @@
           "nom": "statut",
           "libelle": "Statut du crédit",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Tous les statuts —",
           "source": {
             "type": "fixe",
@@ -420,7 +420,7 @@
           "nom": "type_engagement",
           "libelle": "Type d'engagement",
           "type": "liste",
-          "obligatoire": true,
+          "obligatoire": false,
           "option_toutes": "— Tous les types —",
           "source": {
             "type": "fixe",

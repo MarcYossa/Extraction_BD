@@ -15,7 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureIsAdmin::class,
             'user'  => \App\Http\Middleware\EnsureIsUser::class,
+            
         ]);
+         $middleware->trustProxies(
+        at: ['127.0.0.1', '::1']
+    );
         $middleware->redirectGuestsTo(fn () => route('login'));
         // En-têtes de sécurité HTTP appliqués à toutes les réponses web (Lot 12 – T5)
         $middleware->web(\App\Http\Middleware\SecurityHeaders::class);

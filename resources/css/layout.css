@@ -31,18 +31,21 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-5) var(--space-6);
-    padding-bottom: var(--space-4);
-    border: 5px solid #3498db;
 }
 
 .sidebar__logo-img {
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
+    width: 75px;
+    height: 75px;
+    padding: 6px;
+    /* espace blanc autour du logo */
+    background: var(--color-surface);
+    /* fond blanc (#FFFFFF) */
+    border-radius: 10px;
+    /* coins arrondis */
     object-fit: contain;
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.92);
-    padding: 4px;
+    /* le logo n'est jamais déformé */
+    flex-shrink: 0;
+    /* le cadre garde sa taille */
 }
 
 .sidebar__logo-name {
@@ -58,6 +61,8 @@
     font-weight: var(--font-weight-normal);
     letter-spacing: var(--tracking-wide);
 }
+
+
 
 /* Navigation principale */
 .sidebar__nav {
@@ -263,6 +268,21 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
+}
+
+.guest-panel-left__logo-img {
+    width: 75px;
+    height: 75px;
+    padding: 4px;
+    /* espace blanc autour du logo */
+    background: var(--color-surface);
+    /* fond blanc (#FFFFFF) */
+    border-radius: 10px;
+    /* coins arrondis */
+    object-fit: contain;
+    /* le logo n'est jamais déformé */
+    flex-shrink: 0;
+    /* le cadre garde sa taille */
 }
 
 .guest-panel-left__logo-name {

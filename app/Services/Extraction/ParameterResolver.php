@@ -37,13 +37,16 @@ class ParameterResolver
             }
 
             $rawInput = $inputs[$name] ?? null;
+            $isEmpty = ($rawInput === null) || (is_string($rawInput) && trim($rawInput) === '');
 
-            // Appliquer la valeur par défaut si la saisie est absente/nulle
-            if (($rawInput === null || $rawInput === '') && $default !== null) {
+            // Appliquer la valeur par défaut si la saisie est absente/nulle/vide
+            if ($isEmpty && $default !== null && $default !== '') {
                 if ($type === 'date' && $default === 'aujourd_hui') {
                     $rawInput = now()->format('Y-m-d');
+                    $isEmpty = false;
                 } else {
                     $rawInput = $default;
+                    $isEmpty = (is_string($rawInput) && trim($rawInput) === '');
                 }
             }
 
@@ -53,17 +56,14 @@ class ParameterResolver
                 continue;
             }
 
-            // Contrôle d'obligation
-            if ($required && ($rawInput === null || $rawInput === '')) {
-                // Pour une liste avec "option_toutes", l'utilisateur a pu choisir "Toutes", ce qui est valide
-                if ($type !== 'liste' || $optionToutes === null) {
-                    $errors[$name] = sprintf("Le champ [%s] est obligatoire.", $param['libelle'] ?? $name);
-                    continue;
-                }
+            // Contrôle d'obligation : refus strict si vide ou constitué uniquement d'espaces
+            if ($required && $isEmpty) {
+                $errors[$name] = sprintf("Le champ [%s] est obligatoire.", $param['libelle'] ?? $name);
+                continue;
             }
 
             // Si la valeur est vide et non obligatoire, convertir en NULL
-            if ($rawInput === null || $rawInput === '') {
+            if ($isEmpty) {
                 $resolved[$name] = null;
                 continue;
             }
@@ -71,7 +71,7 @@ class ParameterResolver
             // Conversion et règles spécifiques selon le type
             switch ($type) {
                 case 'texte':
-                    $val = (string) $rawInput;
+                    $val = trim((string) $rawInput);
                     if (isset($param['longueur_max']) && mb_strlen($val) > (int) $param['longueur_max']) {
                         $errors[$name] = sprintf("Le champ [%s] ne doit pas dépasser %d caractères.", $param['libelle'] ?? $name, $param['longueur_max']);
                     } else {
