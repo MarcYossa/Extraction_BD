@@ -1554,7 +1554,8 @@
 }
 
 .extraction-card__btn {
-    pointer-events: none; /* Le clic est géré par le lien parent */
+    pointer-events: none;
+    /* Le clic est géré par le lien parent */
 }
 
 /* Grille d'extractions – 3 colonnes, gap 20 px */
@@ -1780,7 +1781,7 @@
     background-color: var(--bg-card);
     color: var(--color-primary-700);
     font-weight: var(--font-weight-semibold);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* Carte du journal */
@@ -1980,4 +1981,9 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-main);
+}
+
+.table-pagination__links nav svg {
+    width: 16px;
+    height: 16px;
 }
