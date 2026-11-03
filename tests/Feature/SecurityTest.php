@@ -332,5 +332,47 @@ class SecurityTest extends TestCase
             "L'algorithme de hachage doit être fort ; trouvé : {$info['algoName']}"
         );
     }
+
+    // ------------------------------------------------------------------ //
+    //  T13 – Non-divulgation des erreurs techniques aux métiers           //
+    // ------------------------------------------------------------------ //
+
+    /** Les utilisateurs métier ne voient JAMAIS les codes d'erreur Oracle (ORA-xxxxx) ni les détails techniques. */
+    public function test_utilisateur_metier_ne_voit_jamais_de_code_oracle_en_cas_derreur(): void
+    {
+        $example = file_get_contents(base_path('docs/design/catalogue/queries.example.json'));
+        Storage::disk('local')->put('extraction/queries.json', $example);
+
+        $mockRunner = $this->createMock(\App\Services\Extraction\ExtractionRunner::class);
+        $rawError = "SQLSTATE[HY000]: General error: 1861 OCIStmtExecute: ORA-01861: literal does not match format string (ext\\pdo_oci\\oci_statement.c:166) (SQL: SELECT * FROM amp_test.compte) (Bindings: ['2026-99-99']) in /var/www/Connection.php:412";
+        $mockRunner->method('run')
+            ->willThrowException(new \RuntimeException($rawError));
+
+        $this->app->instance(\App\Services\Extraction\ExtractionRunner::class, $mockRunner);
+
+        $response = $this->actingAs($this->user)
+            ->from('/extractions/CPT_001')
+            ->post('/extractions/CPT_001/execute', [
+                'agence'           => '1',
+                'date_debut'       => '2020-01-01',
+                'date_fin'         => '2023-12-31',
+                'inclure_clotures' => '0',
+            ]);
+
+        $response->assertRedirect('/extractions/CPT_001');
+        $response->assertSessionHas('error');
+
+        $error = session('error');
+
+        // Message générique attendu
+        $this->assertSame("Une erreur est survenue lors de l'exécution de l'extraction sur la base de données.", $error);
+
+        // Aucune trace technique
+        $this->assertStringNotContainsString('ORA-', $error);
+        $this->assertStringNotContainsString('01861', $error);
+        $this->assertStringNotContainsString('SELECT', $error);
+        $this->assertStringNotContainsString('oci_statement.c', $error);
+        $this->assertStringNotContainsString('Connection.php', $error);
+    }
 }
 
