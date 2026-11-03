@@ -8,6 +8,7 @@ use App\Services\Extraction\ColumnFormatter;
 use App\Services\Extraction\ExecutionLogger;
 use App\Services\Extraction\ExtractionRunner;
 use App\Services\Extraction\ListOptionsProvider;
+use App\Services\Extraction\OracleErrorSanitizer;
 use App\Services\Extraction\ParameterResolver;
 use App\Services\Extraction\QueryCompiler;
 use App\Services\Extraction\ResultStore;
@@ -232,7 +233,9 @@ class ExtractionTestController extends Controller
                 dureeMs: $dureeMs
             );
 
-            return back()->with('error', "Une erreur est survenue lors de l'exécution du test sur la base de données.")->withInput();
+            $adminErrorMessage = OracleErrorSanitizer::sanitize($e);
+
+            return back()->with('error', $adminErrorMessage)->withInput();
         }
     }
 

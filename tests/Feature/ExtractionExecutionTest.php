@@ -244,5 +244,42 @@ class ExtractionExecutionTest extends TestCase
         $error = session('error');
         $this->assertStringContainsString("dépassé le délai de", $error);
     }
+
+    /**
+     * En cas d'erreur Oracle, l'utilisateur métier reçoit uniquement le message générique
+     * et ne voit jamais de code technique (ORA-xxxx), de requête SQL ou de chemin.
+     */
+    public function test_utilisateur_metier_recoit_message_generique_sans_code_oracle_ni_technique(): void
+    {
+        $mockRunner = $this->createMock(ExtractionRunner::class);
+        $rawError = "SQLSTATE[HY000]: General error: 1861 OCIStmtExecute: ORA-01861: literal does not match format string (ext\\pdo_oci\\oci_statement.c:166) (SQL: SELECT * FROM amp_test.compte) (Bindings: ['2026-99-99'])";
+        $mockRunner->method('run')
+            ->willThrowException(new \RuntimeException($rawError));
+
+        $this->app->instance(ExtractionRunner::class, $mockRunner);
+
+        $response = $this->actingAs($this->user)
+            ->from('/extractions/CPT_001')
+            ->post('/extractions/CPT_001/execute', [
+                'agence'           => '1',
+                'date_debut'       => '2020-01-01',
+                'date_fin'         => '2023-12-31',
+                'inclure_clotures' => '0',
+            ]);
+
+        $response->assertRedirect('/extractions/CPT_001');
+        $response->assertSessionHas('error');
+
+        $error = session('error');
+
+        // Message générique attendu
+        $this->assertSame("Une erreur est survenue lors de l'exécution de l'extraction sur la base de données.", $error);
+
+        // Aucune trace technique
+        $this->assertStringNotContainsString('ORA-', $error);
+        $this->assertStringNotContainsString('01861', $error);
+        $this->assertStringNotContainsString('SELECT', $error);
+        $this->assertStringNotContainsString('oci_statement.c', $error);
+    }
 }
 

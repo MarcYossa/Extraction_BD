@@ -176,6 +176,59 @@ class AdminTestPublishTest extends TestCase
     }
 
     /**
+     * En cas d'échec du test, l'administrateur voit le code Oracle et la première ligne
+     * sans la requête SQL, sans les valeurs liées et sans chemin de fichier.
+     */
+    public function test_administrateur_voit_code_oracle_sans_sql_ni_chemin_en_cas_dechec(): void
+    {
+        $optionsMock = $this->createMock(ListOptionsProvider::class);
+        $optionsMock->method('getOptions')->willReturn([]);
+        $this->app->instance(ListOptionsProvider::class, $optionsMock);
+
+        $runnerMock = $this->createMock(ExtractionRunner::class);
+        $rawError = "SQLSTATE[HY000]: General error: 1861 OCIStmtExecute: ORA-01861: le littéral ne correspond pas au format (ext\\pdo_oci\\oci_statement.c:166) (SQL: SELECT * FROM amp_test.compte WHERE date_ref = :p1) (Bindings: ['2026-99-99']) in E:\\Documents\\Projets_BCPME\\Connection.php:412";
+        $runnerMock->method('run')->willThrowException(new \RuntimeException($rawError));
+        $this->app->instance(ExtractionRunner::class, $runnerMock);
+
+        $response = $this->actingAs($this->admin)
+            ->from('/admin/extractions/CPT_001/test')
+            ->post('/admin/extractions/CPT_001/test', [
+                'date_debut' => '2026-01-01',
+                'date_fin'   => '2026-12-31',
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/admin/extractions/CPT_001/test');
+        $response->assertSessionHas('error');
+
+        $errorMessage = session('error');
+
+        // 1. Contient bien le code Oracle et le libellé
+        $this->assertStringContainsString('ORA-01861', $errorMessage);
+        $this->assertStringContainsString('le littéral ne correspond pas au format', $errorMessage);
+
+        // 2. Ne contient PAS la requête SQL
+        $this->assertStringNotContainsString('SELECT', $errorMessage);
+        $this->assertStringNotContainsString('amp_test.compte', $errorMessage);
+
+        // 3. Ne contient PAS les valeurs liées
+        $this->assertStringNotContainsString('Bindings', $errorMessage);
+        $this->assertStringNotContainsString('2026-99-99', $errorMessage);
+
+        // 4. Ne contient PAS de chemin de fichier
+        $this->assertStringNotContainsString('oci_statement.c', $errorMessage);
+        $this->assertStringNotContainsString('Connection.php', $errorMessage);
+        $this->assertStringNotContainsString('ext\\', $errorMessage);
+
+        // 5. Sur la page réaffichée, l'administrateur voit le message sécurisé
+        $getRes = $this->actingAs($this->admin)->get('/admin/extractions/CPT_001/test');
+        $getRes->assertStatus(200);
+        $getRes->assertSee('ORA-01861 : le littéral ne correspond pas au format');
+        $getRes->assertDontSee('SELECT * FROM amp_test.compte');
+        $getRes->assertDontSee('oci_statement.c');
+    }
+
+    /**
      * Publication refusée sans test réussi de la version courante.
      */
     public function test_publication_refusee_sans_test_reussi(): void
