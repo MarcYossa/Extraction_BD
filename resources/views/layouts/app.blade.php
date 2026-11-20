@@ -98,7 +98,7 @@
         {{-- Bas de la sidebar --}}
         <div class="sidebar__footer">
             <div class="sidebar__version">Extraction BD v1.0</div>
-            <div class="sidebar__env">Environnement de test</div>
+            <div class="sidebar__env">Environnement de préproduction</div>
         </div>
 
     </aside>
